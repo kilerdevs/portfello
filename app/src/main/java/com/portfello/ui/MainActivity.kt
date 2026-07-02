@@ -5,7 +5,7 @@ import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +42,7 @@ class MainActivity : FragmentActivity() {
         }
         setContent {
             PortfelloTheme {
-                val status by lockState.status.collectAsState()
+                val status by lockState.status.collectAsStateWithLifecycle()
                 when (status) {
                     AppLockStatus.NEEDS_SETUP,
                     AppLockStatus.LOCKED -> LockScreen()

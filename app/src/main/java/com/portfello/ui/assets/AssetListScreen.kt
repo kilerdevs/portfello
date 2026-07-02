@@ -26,8 +26,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -44,7 +44,7 @@ fun AssetListScreen(
     onBack: () -> Unit,
     viewModel: AssetListViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -135,7 +135,7 @@ private fun AssetRow(valuation: AssetValuation, baseCurrency: String, onClick: (
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    formatValue(valuation.totalValue, baseCurrency),
+                    com.portfello.ui.common.formatMoney(valuation.totalValue, baseCurrency),
                     style = MaterialTheme.typography.titleMedium
                 )
                 com.portfello.ui.common.ChangeBadge(valuation.change24hPct)
@@ -158,6 +158,3 @@ private fun typeLabel(type: AssetType) = when (type) {
     AssetType.MANUAL -> "Ręczne"
 }
 
-internal fun formatValue(value: Double, currency: String): String {
-    return "%,.2f %s".format(value, currency)
-}

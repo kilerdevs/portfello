@@ -30,7 +30,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,20 +38,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
-import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
-import com.patrykandpatrick.vico.core.cartesian.Zoom
-import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
-import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import java.text.DecimalFormat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.portfello.ui.common.TimeLineChart
+import com.portfello.ui.common.formatMoney
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -65,7 +53,7 @@ fun AssetDetailScreen(
     onBack: () -> Unit,
     viewModel: AssetDetailViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(assetId) { viewModel.load(assetId) }
@@ -129,7 +117,7 @@ fun AssetDetailScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("Wartość", style = MaterialTheme.typography.labelMedium)
                     Text(
-                        formatValue(valuation.totalValue, valuation.baseCurrency),
+                        formatMoney(valuation.totalValue, valuation.baseCurrency),
                         style = MaterialTheme.typography.headlineMedium
                     )
                     com.portfello.ui.common.ProfitLossText(
@@ -138,7 +126,7 @@ fun AssetDetailScreen(
                     )
                     valuation.pricePerUnit?.let { price ->
                         Text(
-                            "Cena: ${formatValue(price, valuation.priceCurrency ?: "")}",
+                            "Cena: ${formatMoney(price, valuation.priceCurrency ?: "")}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -164,8 +152,8 @@ fun AssetDetailScreen(
                         )
                     }
                 }
-                PriceChart(
-                    prices = state.priceHistory.map { it.price },
+                TimeLineChart(
+                    points = state.priceHistory.map { it.timestamp to it.price },
                     modifier = Modifier.fillMaxWidth().height(200.dp)
                 )
             }
@@ -184,7 +172,7 @@ fun AssetDetailScreen(
                         val qtyStr = if (h.quantity == h.quantity.toLong().toDouble()) h.quantity.toLong().toString() else h.quantity.toString()
                         Text("Ilość: $qtyStr")
                         h.purchasePrice?.let {
-                            Text("@ ${formatValue(it, valuation.asset.currency)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("@ ${formatMoney(it, valuation.asset.currency)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -198,33 +186,3 @@ fun AssetDetailScreen(
     }
 }
 
-private val compactAxisFormat = CartesianValueFormatter { _, value, _ ->
-    when {
-        value >= 1_000_000 -> "%.1fM".format(value / 1_000_000)
-        value >= 1_000 -> "%.0fk".format(value / 1_000)
-        else -> DecimalFormat("#.##").format(value)
-    }
-}
-
-@Composable
-private fun PriceChart(prices: List<Double>, modifier: Modifier = Modifier) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(prices) {
-        if (prices.isNotEmpty()) {
-            modelProducer.runTransaction {
-                lineSeries { series(prices) }
-            }
-        }
-    }
-    CartesianChartHost(
-        chart = rememberCartesianChart(
-            rememberLineCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(valueFormatter = compactAxisFormat),
-            bottomAxis = HorizontalAxis.rememberBottom()
-        ),
-        modelProducer = modelProducer,
-        scrollState = rememberVicoScrollState(scrollEnabled = false),
-        zoomState = rememberVicoZoomState(zoomEnabled = false, initialZoom = Zoom.Content),
-        modifier = modifier
-    )
-}
