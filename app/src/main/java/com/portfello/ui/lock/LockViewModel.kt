@@ -143,7 +143,9 @@ class LockViewModel @Inject constructor(
     }
 
     private fun wipeDatabase() {
-        context.getDatabasePath("portfello.db").delete()
+        val dbFile = context.getDatabasePath("portfello.db")
+        // ponytail: open singleton handle keeps writing to the unlinked inode — harmless, fresh DB on next setup
+        listOf(dbFile, java.io.File("${dbFile.path}-wal"), java.io.File("${dbFile.path}-shm")).forEach { it.delete() }
         java.io.File(context.filesDir, "crypto_config.json").delete()
         prefs.onboardingComplete = false
         _uiState.value = LockUiState(error = "Dane zostały usunięte. Ustaw nowy PIN.")

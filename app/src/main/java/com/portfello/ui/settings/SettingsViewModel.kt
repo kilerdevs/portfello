@@ -89,10 +89,10 @@ class SettingsViewModel @Inject constructor(
                     db.close()
                     val sqlDb = SQLiteDatabase.openDatabase(
                         dbPath,
-                        String(oldKey, Charsets.ISO_8859_1),
+                        oldKey,
                         null, SQLiteDatabase.OPEN_READWRITE, null, null
                     )
-                    sqlDb.changePassword(String(newKey, Charsets.ISO_8859_1))
+                    sqlDb.changePassword(newKey)
                     sqlDb.close()
                     oldKey.fill(0)
                     _state.value = s.copy(
@@ -156,7 +156,7 @@ class SettingsViewModel @Inject constructor(
 
                 val exportDb = SQLiteDatabase.openDatabase(
                     tempExport.absolutePath,
-                    keyManager.getDatabaseKey().toString(Charsets.ISO_8859_1),
+                    keyManager.getDatabaseKey(),
                     null, SQLiteDatabase.OPEN_READWRITE, null, null
                 )
                 exportDb.changePassword(password)
@@ -190,7 +190,7 @@ class SettingsViewModel @Inject constructor(
                     tempImport.absolutePath, password,
                     null, SQLiteDatabase.OPEN_READWRITE, null, null
                 )
-                rekey.changePassword(keyManager.getDatabaseKey().toString(Charsets.ISO_8859_1))
+                rekey.changePassword(keyManager.getDatabaseKey())
                 rekey.close()
 
                 db.close()

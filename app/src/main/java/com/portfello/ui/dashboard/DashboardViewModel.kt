@@ -43,6 +43,7 @@ class DashboardViewModel @Inject constructor(
     init { refresh() }
 
     fun refresh() {
+        if (_state.value.isRefreshing) return
         viewModelScope.launch {
             _state.value = _state.value.copy(isRefreshing = true)
             val assets = assetRepo.getAllAssets().first()

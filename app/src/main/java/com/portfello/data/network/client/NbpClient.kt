@@ -75,7 +75,8 @@ class NbpClient @Inject constructor(
     }
 
     private suspend fun fetchRate(currencyCode: String, targetCurrency: String): Quote {
-        // NBP always gives rates in PLN
+        // NBP only quotes against PLN — let callers fall through to Frankfurter otherwise
+        if (targetCurrency != "PLN") throw Exception("NBP: only PLN quotes")
         val table = if (currencyCode in TABLE_B_CURRENCIES) "B" else "A"
         val url = "https://api.nbp.pl/api/exchangerates/rates/$table/$currencyCode/?format=json"
         val json = get(url)

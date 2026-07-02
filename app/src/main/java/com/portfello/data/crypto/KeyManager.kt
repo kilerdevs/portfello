@@ -35,25 +35,42 @@ class KeyManager @Inject constructor(
     fun setupPin(pin: String) {
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val hash = deriveKey(pin, salt)
+        val key = hash.rawHashAsByteArray()
         val config = CryptoConfig(
             salt = Base64.encodeToString(salt, Base64.NO_WRAP),
-            pinHash = Base64.encodeToString(hash.rawHashAsByteArray(), Base64.NO_WRAP)
+            pinHash = Base64.encodeToString(sha256(key), Base64.NO_WRAP),
+            version = 2
         )
         configFile.writeText(configAdapter.toJson(config))
-        cachedDbKey = hash.rawHashAsByteArray()
+        cachedDbKey = key
     }
 
     fun verifyAndUnlock(pin: String): Boolean {
         val config = loadConfig() ?: return false
         val salt = Base64.decode(config.salt, Base64.NO_WRAP)
-        val hash = deriveKey(pin, salt, config)
+        val key = deriveKey(pin, salt, config).rawHashAsByteArray()
         val expected = Base64.decode(config.pinHash, Base64.NO_WRAP)
-        val matches = hash.rawHashAsByteArray().contentEquals(expected)
+        // v1 stored the raw key as pinHash (plaintext DB key on disk); v2 stores SHA-256 of it
+        val matches = if (config.version >= 2) {
+            sha256(key).contentEquals(expected)
+        } else {
+            key.contentEquals(expected)
+        }
         if (matches) {
-            cachedDbKey = hash.rawHashAsByteArray()
+            cachedDbKey = key
+            if (config.version < 2) {
+                // migrate legacy config: replace stored key with its digest
+                configFile.writeText(configAdapter.toJson(config.copy(
+                    pinHash = Base64.encodeToString(sha256(key), Base64.NO_WRAP),
+                    version = 2
+                )))
+            }
         }
         return matches
     }
+
+    private fun sha256(data: ByteArray): ByteArray =
+        java.security.MessageDigest.getInstance("SHA-256").digest(data)
 
     fun getDatabaseKey(): ByteArray =
         cachedDbKey ?: throw IllegalStateException("Database not unlocked")

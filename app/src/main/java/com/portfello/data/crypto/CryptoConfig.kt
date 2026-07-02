@@ -8,5 +8,8 @@ data class CryptoConfig(
     val argonTimeCost: Int = 3,
     val argonMemoryCost: Int = 65536, // 64 MB
     val argonParallelism: Int = 2,
-    val pinHash: String     // base64 of Argon2id hash — for PIN verification only
+    // v1: base64 of the raw Argon2id hash (== DB key, plaintext on disk — legacy)
+    // v2: base64 of SHA-256(DB key) — verification only, key never stored
+    val pinHash: String,
+    val version: Int = 1
 )

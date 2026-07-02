@@ -40,9 +40,11 @@ class AssetListViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true)
             assetRepo.getAllAssets().collect { assets ->
                 val baseCurrency = prefs.baseCurrency
-                // Show assets immediately so new items appear without waiting for network
+                // Show assets immediately so new items appear without waiting for network;
+                // reuse last known valuations so existing rows don't flash to zero
+                val prev = _state.value.groups.values.flatten().associateBy { it.asset.id }
                 val placeholder = assets.map {
-                    AssetValuation(it, 0.0, baseCurrency, null, null, null)
+                    prev[it.id]?.copy(asset = it) ?: AssetValuation(it, 0.0, baseCurrency, null, null, null)
                 }
                 _state.value = AssetListState(
                     groups = placeholder.groupBy { it.asset.type },

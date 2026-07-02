@@ -23,7 +23,8 @@ data class AssetDetailState(
     val holdings: List<AssetHolding> = emptyList(),
     val priceHistory: List<HistoryPoint> = emptyList(),
     val selectedRange: Int = 30, // days
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val historyError: String? = null
 )
 
 @HiltViewModel
@@ -67,8 +68,12 @@ class AssetDetailViewModel @Inject constructor(
 
     private suspend fun loadHistory(asset: Asset, days: Int) {
         val ticker = asset.tickerOrId ?: return
-        priceRepo.getHistory(asset.type, ticker, asset.currency, days).onSuccess { history ->
-            _state.value = _state.value.copy(priceHistory = history)
-        }
+        priceRepo.getHistory(asset.type, ticker, asset.currency, days)
+            .onSuccess { history ->
+                _state.value = _state.value.copy(priceHistory = history, historyError = null)
+            }
+            .onFailure { e ->
+                _state.value = _state.value.copy(historyError = e.message ?: "Błąd pobierania historii")
+            }
     }
 }

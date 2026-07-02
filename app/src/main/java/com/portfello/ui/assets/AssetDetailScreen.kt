@@ -165,6 +165,13 @@ fun AssetDetailScreen(
                     modifier = Modifier.fillMaxWidth().height(200.dp)
                 )
             }
+            state.historyError?.let {
+                Text(
+                    "Nie udało się pobrać historii: $it",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Text("Pozycje", style = MaterialTheme.typography.titleSmall)
             state.holdings.forEach { h ->
