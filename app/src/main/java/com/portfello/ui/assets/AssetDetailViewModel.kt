@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.portfello.data.AppPrefs
 import com.portfello.data.db.entity.Asset
 import com.portfello.data.db.entity.AssetHolding
+import com.portfello.data.db.entity.AssetType
 import com.portfello.data.repository.AssetRepository
 import com.portfello.data.repository.HistoryPoint
 import com.portfello.data.repository.PriceRepository
 import com.portfello.domain.AssetValuation
+import com.portfello.domain.BullionValuator
 import com.portfello.domain.ValuationEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +34,7 @@ class AssetDetailViewModel @Inject constructor(
     private val assetRepo: AssetRepository,
     private val priceRepo: PriceRepository,
     private val valuationEngine: ValuationEngine,
+    private val bullionValuator: BullionValuator,
     private val prefs: AppPrefs
 ) : ViewModel() {
 
@@ -67,8 +70,15 @@ class AssetDetailViewModel @Inject constructor(
     }
 
     private suspend fun loadHistory(asset: Asset, days: Int) {
-        val ticker = asset.tickerOrId ?: return
-        priceRepo.getHistory(asset.type, ticker, asset.currency, days)
+        val result = if (asset.type == AssetType.METAL_BULLION) {
+            // bullion has no ticker — chart the per-unit value (spot x weight x purity + premium)
+            val details = assetRepo.getBullionDetails(asset.id) ?: return
+            bullionValuator.unitValueHistory(details, days)
+        } else {
+            val ticker = asset.tickerOrId ?: return
+            priceRepo.getHistory(asset.type, ticker, asset.currency, days)
+        }
+        result
             .onSuccess { history ->
                 _state.value = _state.value.copy(priceHistory = history, historyError = null)
             }

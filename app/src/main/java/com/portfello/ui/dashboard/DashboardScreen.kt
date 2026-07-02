@@ -1,6 +1,7 @@
 package com.portfello.ui.dashboard
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.outlined.Star
@@ -35,54 +37,30 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
-import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
-import com.patrykandpatrick.vico.core.cartesian.Zoom
-import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
-import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import java.text.DecimalFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.portfello.data.db.entity.AssetType
 import com.portfello.domain.AssetValuation
-import com.portfello.ui.assets.formatValue
 import com.portfello.ui.common.ChangeBadge
 import com.portfello.ui.common.ProfitLossText
-
-private val typeColors = mapOf(
-    AssetType.STOCK to Color(0xFF6750A4),
-    AssetType.BOND_RETAIL to Color(0xFF625B71),
-    AssetType.BOND_TRADED to Color(0xFF7D5260),
-    AssetType.CURRENCY to Color(0xFF006D40),
-    AssetType.METAL_BULLION to Color(0xFFFFB900),
-    AssetType.CRYPTO to Color(0xFFE8600A),
-    AssetType.MANUAL to Color(0xFF49454F),
-)
+import com.portfello.ui.common.TimeLineChart
+import com.portfello.ui.common.formatMoney
+import com.portfello.ui.theme.ElectricTeal
+import com.portfello.ui.theme.Violet
+import com.portfello.ui.theme.typeColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -92,7 +70,7 @@ fun DashboardScreen(
     onAssetClick: (Long) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -166,49 +144,21 @@ fun DashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
             item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Wartość portfela", style = MaterialTheme.typography.labelMedium)
-                        Text(
-                            formatValue(state.totalValue, state.baseCurrency),
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                        if (state.change24hPct != null || state.change7dPct != null) {
-                            Spacer(Modifier.height(4.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                ChangeBadge(state.change24hPct, label = "24h")
-                                ChangeBadge(state.change7dPct, label = "7d")
-                            }
-                        }
-                        val costs = state.valuations.mapNotNull { it.costBasisInBase }
-                        if (costs.isNotEmpty()) {
-                            val totalCost = costs.sum()
-                            val coveredValue = state.valuations
-                                .filter { it.costBasisInBase != null }
-                                .sumOf { it.totalValue }
-                            ProfitLossText(
-                                profitLoss = coveredValue - totalCost,
-                                profitLossPct = if (totalCost != 0.0) (coveredValue - totalCost) / totalCost * 100 else null,
-                                currency = state.baseCurrency,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
+                HeroCard(state)
             }
 
             if (state.allocation.isNotEmpty()) {
                 item {
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Alokacja", style = MaterialTheme.typography.labelMedium, modifier = Modifier.fillMaxWidth())
-                            Spacer(Modifier.height(12.dp))
-                            AllocationPie(
+                            Text("ALOKACJA", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
+                            Spacer(Modifier.height(16.dp))
+                            AllocationDonut(
                                 allocation = state.allocation,
                                 total = state.totalValue,
-                                modifier = Modifier.size(160.dp)
+                                modifier = Modifier.size(170.dp)
                             )
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(16.dp))
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -235,7 +185,7 @@ fun DashboardScreen(
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Wartość w czasie", style = MaterialTheme.typography.labelMedium)
+                        Text("WARTOŚĆ W CZASIE", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                         val ranges = listOf(1 to "1D", 7 to "7D", 30 to "1M", 90 to "3M", 365 to "1Y")
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -249,8 +199,8 @@ fun DashboardScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         if (state.chartData.size > 1) {
-                            PortfolioChart(
-                                data = state.chartData,
+                            TimeLineChart(
+                                points = state.chartData.map { it.timestamp to it.value },
                                 modifier = Modifier.fillMaxWidth().height(200.dp)
                             )
                         } else {
@@ -265,7 +215,7 @@ fun DashboardScreen(
             }
 
             item {
-                Text("Pozycje", style = MaterialTheme.typography.titleSmall)
+                Text("Pozycje", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             }
             val sorted = state.valuations.sortedByDescending { it.totalValue }
             items(sorted.take(10), key = { it.asset.id }) { v ->
@@ -286,7 +236,7 @@ fun DashboardScreen(
                             )
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(formatValue(v.totalValue, state.baseCurrency), style = MaterialTheme.typography.titleMedium)
+                            Text(formatMoney(v.totalValue, state.baseCurrency), style = MaterialTheme.typography.titleMedium)
                             ChangeBadge(v.change24hPct)
                             ProfitLossText(v.profitLoss, v.profitLossPct, state.baseCurrency, style = MaterialTheme.typography.labelSmall)
                             v.error?.let {
@@ -315,86 +265,77 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun AllocationPie(allocation: Map<AssetType, Double>, total: Double, modifier: Modifier) {
+private fun HeroCard(state: DashboardState) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.linearGradient(
+                    listOf(ElectricTeal.copy(alpha = 0.22f), Violet.copy(alpha = 0.22f))
+                ),
+                RoundedCornerShape(20.dp)
+            )
+            .padding(20.dp)
+    ) {
+        Column {
+            Text(
+                "WARTOŚĆ PORTFELA",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                formatMoney(state.totalValue, state.baseCurrency),
+                style = MaterialTheme.typography.headlineLarge
+            )
+            if (state.change24hPct != null || state.change7dPct != null) {
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ChangeBadge(state.change24hPct, label = "24h")
+                    ChangeBadge(state.change7dPct, label = "7d")
+                }
+            }
+            val costs = state.valuations.mapNotNull { it.costBasisInBase }
+            if (costs.isNotEmpty()) {
+                val totalCost = costs.sum()
+                val coveredValue = state.valuations
+                    .filter { it.costBasisInBase != null }
+                    .sumOf { it.totalValue }
+                Spacer(Modifier.height(4.dp))
+                ProfitLossText(
+                    profitLoss = coveredValue - totalCost,
+                    profitLossPct = if (totalCost != 0.0) (coveredValue - totalCost) / totalCost * 100 else null,
+                    currency = state.baseCurrency,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AllocationDonut(allocation: Map<AssetType, Double>, total: Double, modifier: Modifier) {
     Canvas(modifier.aspectRatio(1f)) {
         if (total <= 0) return@Canvas
+        val strokeWidth = size.width * 0.16f
+        val inset = strokeWidth / 2
+        val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
         var startAngle = -90f
         allocation.forEach { (type, value) ->
             val sweep = (value / total * 360).toFloat()
             drawArc(
                 color = typeColors[type] ?: Color.Gray,
                 startAngle = startAngle,
-                sweepAngle = sweep,
-                useCenter = true,
-                topLeft = Offset.Zero,
-                size = Size(size.width, size.height)
+                // small gap between segments
+                sweepAngle = (sweep - 2f).coerceAtLeast(0.5f),
+                useCenter = false,
+                topLeft = Offset(inset, inset),
+                size = arcSize,
+                style = Stroke(width = strokeWidth)
             )
             startAngle += sweep
         }
     }
-}
-
-private val yAxisFormat = CartesianValueFormatter { _, value, _ ->
-    when {
-        value >= 1_000_000 -> "%.1fM".format(value / 1_000_000)
-        value >= 1_000 -> "%.0fk".format(value / 1_000)
-        else -> DecimalFormat("#.##").format(value)
-    }
-}
-
-@Composable
-private fun PortfolioChart(data: List<ChartPoint>, modifier: Modifier) {
-    val snapshot = remember(data) { data.toList() }
-    val modelProducer = remember { CartesianChartModelProducer() }
-
-    val dayMs = 24L * 3600 * 1000
-    val baseDay = remember(snapshot) {
-        if (snapshot.isNotEmpty()) snapshot.first().timestamp / dayMs else 0L
-    }
-    val spanDays = remember(snapshot) {
-        if (snapshot.size < 2) 1L
-        else (snapshot.last().timestamp - snapshot.first().timestamp) / dayMs
-    }
-
-    LaunchedEffect(snapshot) {
-        if (snapshot.size >= 2) {
-            modelProducer.runTransaction {
-                lineSeries {
-                    series(
-                        x = snapshot.map { ((it.timestamp / dayMs) - baseDay).toDouble() },
-                        y = snapshot.map { it.value },
-                    )
-                }
-            }
-        }
-    }
-
-    val xAxisFormat = remember(baseDay, spanDays) {
-        val fmt = SimpleDateFormat(if (spanDays > 90) "MM.yy" else "dd.MM", Locale.getDefault())
-        val today = System.currentTimeMillis() / dayMs
-        CartesianValueFormatter { _, value, _ ->
-            val day = baseDay + Math.round(value)
-            if (day >= today) "Dziś" else fmt.format(Date(day * dayMs))
-        }
-    }
-
-    // ponytail: getXStep controls label/tick density — one label per spanDays/5 days
-    val xStep: (CartesianChartModel) -> Double = remember(spanDays) {
-        { _ -> (spanDays / 5.0).coerceAtLeast(1.0) }
-    }
-
-    CartesianChartHost(
-        chart = rememberCartesianChart(
-            rememberLineCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(valueFormatter = yAxisFormat),
-            bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = xAxisFormat),
-            getXStep = xStep,
-        ),
-        modelProducer = modelProducer,
-        scrollState = rememberVicoScrollState(scrollEnabled = false),
-        zoomState = rememberVicoZoomState(zoomEnabled = false, initialZoom = Zoom.Content),
-        modifier = modifier
-    )
 }
 
 private fun positionSubtitle(v: AssetValuation): String {

@@ -9,6 +9,7 @@ import com.portfello.data.db.entity.PortfolioSnapshot
 import com.portfello.data.repository.AssetRepository
 import com.portfello.data.repository.PriceRepository
 import com.portfello.domain.AssetValuation
+import com.portfello.domain.BullionValuator
 import com.portfello.domain.ValuationEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,7 @@ class DashboardViewModel @Inject constructor(
     private val assetRepo: AssetRepository,
     private val valuationEngine: ValuationEngine,
     private val priceRepo: PriceRepository,
+    private val bullionValuator: BullionValuator,
     private val snapshotDao: PortfolioSnapshotDao,
     private val prefs: AppPrefs
 ) : ViewModel() {
@@ -136,14 +138,20 @@ class DashboardViewModel @Inject constructor(
         data class AssetHistory(val qty: Double, val prices: java.util.TreeMap<Long, Double>)
 
         val histories = assets.mapNotNull { asset ->
-            val ticker = asset.tickerOrId ?: return@mapNotNull null
             if (asset.type == AssetType.BOND_RETAIL || asset.type == AssetType.MANUAL) return@mapNotNull null
             val holdings = assetRepo.getHoldings(asset.id).first()
             val qty = holdings.sumOf { it.quantity }
             if (qty <= 0) return@mapNotNull null
 
             val history = try {
-                priceRepo.getHistory(asset.type, ticker, baseCurrency, days).getOrNull()
+                if (asset.type == AssetType.METAL_BULLION) {
+                    // bullion has no ticker — scale the metal spot history to per-unit value
+                    val details = assetRepo.getBullionDetails(asset.id) ?: return@mapNotNull null
+                    bullionValuator.unitValueHistory(details, days).getOrNull()
+                } else {
+                    val ticker = asset.tickerOrId ?: return@mapNotNull null
+                    priceRepo.getHistory(asset.type, ticker, baseCurrency, days).getOrNull()
+                }
             } catch (_: Exception) { null }
                 ?: return@mapNotNull null
 
