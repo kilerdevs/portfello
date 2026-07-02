@@ -30,6 +30,7 @@ data class SettingsState(
     val coinGeckoApiKey: String = "",
     val lockTimeoutSec: Long = 60,
     val wipeAfterAttempts: Int = 0,
+    val biometricEnabled: Boolean = false,
     val message: String? = null,
     val showChangePinDialog: Boolean = false,
     val oldPin: String = "",
@@ -57,7 +58,8 @@ class SettingsViewModel @Inject constructor(
         syncIntervalMin = prefs.syncIntervalMin,
         coinGeckoApiKey = prefs.coinGeckoApiKey,
         lockTimeoutSec = prefs.lockTimeoutSec,
-        wipeAfterAttempts = prefs.wipeAfterAttempts
+        wipeAfterAttempts = prefs.wipeAfterAttempts,
+        biometricEnabled = keyManager.biometricEnabled
     ))
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
@@ -76,6 +78,21 @@ class SettingsViewModel @Inject constructor(
         lockState.lockTimeoutMs = s.lockTimeoutSec * 1000
         prefs.wipeAfterAttempts = s.wipeAfterAttempts
         _state.value = s.copy(message = "Ustawienia zapisane")
+    }
+
+    fun biometricEncryptCipher() = keyManager.getBiometricEncryptCipher()
+
+    fun enableBiometric(cipher: javax.crypto.Cipher) {
+        val ok = keyManager.enableBiometric(cipher)
+        _state.value = _state.value.copy(
+            biometricEnabled = ok,
+            message = if (ok) "Odblokowanie biometryczne włączone" else "Nie udało się włączyć biometrii"
+        )
+    }
+
+    fun disableBiometric() {
+        keyManager.disableBiometric()
+        _state.value = _state.value.copy(biometricEnabled = false, message = "Odblokowanie biometryczne wyłączone")
     }
 
     fun changePin() {
@@ -97,6 +114,8 @@ class SettingsViewModel @Inject constructor(
                     oldKey.fill(0)
                     _state.value = s.copy(
                         showChangePinDialog = false, oldPin = "", newPin = "",
+                        // new PIN derives a new DB key, so the old wrapped biometric key is void
+                        biometricEnabled = keyManager.biometricEnabled,
                         message = "PIN zmieniony — uruchom ponownie aplikację"
                     )
                 } catch (e: Exception) {

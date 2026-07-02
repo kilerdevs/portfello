@@ -142,6 +142,23 @@ class LockViewModel @Inject constructor(
         }
     }
 
+    val biometricEnabled: Boolean
+        get() = keyManager.biometricEnabled
+
+    fun biometricDecryptCipher() = keyManager.getBiometricDecryptCipher()
+
+    fun onBiometricUnlock(cipher: javax.crypto.Cipher) {
+        _uiState.value = _uiState.value.copy(isProcessing = true)
+        viewModelScope.launch(Dispatchers.Default) {
+            if (keyManager.unlockWithBiometricCipher(cipher)) {
+                lockState.onUnlocked()
+                _uiState.value = LockUiState()
+            } else {
+                _uiState.value = LockUiState(error = "Odblokowanie biometryczne nie powiodło się")
+            }
+        }
+    }
+
     private fun wipeDatabase() {
         val dbFile = context.getDatabasePath("portfello.db")
         // ponytail: open singleton handle keeps writing to the unlinked inode — harmless, fresh DB on next setup

@@ -11,5 +11,8 @@ data class CryptoConfig(
     // v1: base64 of the raw Argon2id hash (== DB key, plaintext on disk — legacy)
     // v2: base64 of SHA-256(DB key) — verification only, key never stored
     val pinHash: String,
-    val version: Int = 1
+    val version: Int = 1,
+    // DB key wrapped by a biometric-gated Keystore AES-GCM key (base64); null = biometrics off
+    val biometricWrappedKey: String? = null,
+    val biometricIv: String? = null
 )

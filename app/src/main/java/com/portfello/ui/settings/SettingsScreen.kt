@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -42,11 +43,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.portfello.ui.common.canUseBiometrics
+import com.portfello.ui.common.showBiometricPrompt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,6 +200,30 @@ fun SettingsScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            val context = LocalContext.current
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Odblokowanie biometryczne", style = MaterialTheme.typography.bodyLarge)
+                Switch(
+                    checked = state.biometricEnabled,
+                    enabled = canUseBiometrics(context),
+                    onCheckedChange = { wantEnabled ->
+                        if (!wantEnabled) {
+                            viewModel.disableBiometric()
+                        } else {
+                            val activity = context as? FragmentActivity ?: return@Switch
+                            val cipher = viewModel.biometricEncryptCipher() ?: return@Switch
+                            showBiometricPrompt(activity, cipher, "Włącz odblokowanie biometryczne") {
+                                viewModel.enableBiometric(it)
+                            }
+                        }
+                    }
+                )
+            }
 
             Button(onClick = { viewModel.saveAll() }, Modifier.fillMaxWidth()) {
                 Text("Zapisz ustawienia")

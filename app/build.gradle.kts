@@ -75,6 +75,9 @@ dependencies {
     // Security - for Keystore operations
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
+    // Biometric unlock
+    implementation("androidx.biometric:biometric:1.1.0")
+
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.hilt:hilt-work:1.2.0")

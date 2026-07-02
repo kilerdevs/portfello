@@ -21,20 +21,42 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.portfello.ui.common.canUseBiometrics
+import com.portfello.ui.common.showBiometricPrompt
 
 @Composable
 fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val isSetup = viewModel.isSetup
+
+    val context = LocalContext.current
+    val biometricsUsable = remember {
+        !isSetup && viewModel.biometricEnabled && canUseBiometrics(context)
+    }
+    val launchBiometric = launchBiometric@{
+        val activity = context as? FragmentActivity ?: return@launchBiometric
+        val cipher = viewModel.biometricDecryptCipher() ?: return@launchBiometric
+        showBiometricPrompt(activity, cipher, "Odblokuj Portfello") { authorized ->
+            viewModel.onBiometricUnlock(authorized)
+        }
+    }
+    if (biometricsUsable) {
+        LaunchedEffect(Unit) { launchBiometric() }
+    }
 
     Column(
         modifier = Modifier
@@ -113,6 +135,12 @@ fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
                 onBackspace = viewModel::onBackspace,
                 onConfirm = viewModel::onConfirm
             )
+            if (biometricsUsable) {
+                Spacer(Modifier.height(16.dp))
+                TextButton(onClick = { launchBiometric() }) {
+                    Text("Odblokuj biometrycznie")
+                }
+            }
         }
     }
 }

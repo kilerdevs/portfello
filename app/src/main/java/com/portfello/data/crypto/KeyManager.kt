@@ -1,6 +1,10 @@
 package com.portfello.data.crypto
 
 import android.content.Context
+import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.KeyProperties
 import android.util.Base64
 import com.lambdapioneer.argon2kt.Argon2Kt
 import com.lambdapioneer.argon2kt.Argon2KtResult
@@ -8,7 +12,12 @@ import com.lambdapioneer.argon2kt.Argon2Mode
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.security.KeyStore
 import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -71,6 +80,105 @@ class KeyManager @Inject constructor(
 
     private fun sha256(data: ByteArray): ByteArray =
         java.security.MessageDigest.getInstance("SHA-256").digest(data)
+
+    // --- Biometric unlock: DB key wrapped by a biometric-gated Keystore AES-GCM key ---
+
+    val biometricEnabled: Boolean
+        get() = loadConfig()?.biometricWrappedKey != null
+
+    /** Cipher for wrapping the DB key; must be authorized via BiometricPrompt.CryptoObject. */
+    fun getBiometricEncryptCipher(): Cipher? = try {
+        Cipher.getInstance(CIPHER).apply { init(Cipher.ENCRYPT_MODE, getOrCreateBiometricKey()) }
+    } catch (_: Exception) {
+        null
+    }
+
+    /** Persists the wrapped DB key; call with the cipher returned by a successful ENCRYPT prompt. */
+    fun enableBiometric(cipher: Cipher): Boolean {
+        val key = cachedDbKey ?: return false
+        val config = loadConfig() ?: return false
+        return try {
+            val wrapped = cipher.doFinal(key)
+            configFile.writeText(configAdapter.toJson(config.copy(
+                biometricWrappedKey = Base64.encodeToString(wrapped, Base64.NO_WRAP),
+                biometricIv = Base64.encodeToString(cipher.iv, Base64.NO_WRAP)
+            )))
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /** Cipher for unwrapping; null when biometrics are off or the Keystore key was invalidated. */
+    fun getBiometricDecryptCipher(): Cipher? {
+        val config = loadConfig() ?: return null
+        val iv = config.biometricIv ?: return null
+        return try {
+            val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+            val key = ks.getKey(BIOMETRIC_KEY_ALIAS, null) as? SecretKey ?: return null
+            Cipher.getInstance(CIPHER).apply {
+                init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, Base64.decode(iv, Base64.NO_WRAP)))
+            }
+        } catch (_: KeyPermanentlyInvalidatedException) {
+            disableBiometric() // fingerprint enrollment changed — require PIN and re-enable
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** Unwraps the DB key with the cipher returned by a successful DECRYPT prompt. */
+    fun unlockWithBiometricCipher(cipher: Cipher): Boolean {
+        val wrappedB64 = loadConfig()?.biometricWrappedKey ?: return false
+        return try {
+            cachedDbKey = cipher.doFinal(Base64.decode(wrappedB64, Base64.NO_WRAP))
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun disableBiometric() {
+        loadConfig()?.let {
+            configFile.writeText(configAdapter.toJson(it.copy(biometricWrappedKey = null, biometricIv = null)))
+        }
+        try {
+            KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }.deleteEntry(BIOMETRIC_KEY_ALIAS)
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun getOrCreateBiometricKey(): SecretKey {
+        val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        (ks.getKey(BIOMETRIC_KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        val spec = KeyGenParameterSpec.Builder(
+            BIOMETRIC_KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+            .setUserAuthenticationRequired(true)
+            .setInvalidatedByBiometricEnrollment(true)
+            .apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
+                } else {
+                    @Suppress("DEPRECATION")
+                    setUserAuthenticationValidityDurationSeconds(-1)
+                }
+            }
+            .build()
+        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+            .apply { init(spec) }
+            .generateKey()
+    }
+
+    companion object {
+        private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        private const val BIOMETRIC_KEY_ALIAS = "portfello_biometric"
+        private const val CIPHER = "AES/GCM/NoPadding"
+    }
 
     fun getDatabaseKey(): ByteArray =
         cachedDbKey ?: throw IllegalStateException("Database not unlocked")
