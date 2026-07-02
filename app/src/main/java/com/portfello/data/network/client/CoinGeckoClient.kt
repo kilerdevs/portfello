@@ -59,7 +59,7 @@ class CoinGeckoClient @Inject constructor(
     }
 
     override suspend fun search(query: String): Result<List<SearchResult>> = runCatching {
-        val url = "$BASE/search?query=$query"
+        val url = "$BASE/search?query=${java.net.URLEncoder.encode(query, "UTF-8")}"
         val json = withRetry { get(url) }
         val resp = searchAdapter.fromJson(json) ?: throw Exception("CoinGecko parse error")
         resp.coins.take(20).map { coin ->

@@ -1,5 +1,6 @@
 package com.portfello.data.network
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
 suspend fun <T> withRetry(
@@ -11,6 +12,8 @@ suspend fun <T> withRetry(
     repeat(maxAttempts) { attempt ->
         try {
             return block()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             lastException = e
             if (attempt < maxAttempts - 1) {

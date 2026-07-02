@@ -41,7 +41,8 @@ class YahooFinanceClient @Inject constructor(
     }
 
     override suspend fun search(query: String): Result<List<SearchResult>> = runCatching {
-        val url = "https://query2.finance.yahoo.com/v1/finance/search?q=${query}&quotesCount=8&newsCount=0"
+        val q = java.net.URLEncoder.encode(query, "UTF-8")
+        val url = "https://query2.finance.yahoo.com/v1/finance/search?q=$q&quotesCount=8&newsCount=0"
         val json = withRetry { getJson(url) }
         parseSearch(json)
     }

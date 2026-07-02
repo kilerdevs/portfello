@@ -8,7 +8,11 @@ import javax.inject.Singleton
 class CurrencyConverter @Inject constructor(
     private val priceRepo: PriceRepository
 ) {
-    private val rateCache = mutableMapOf<String, Double>()
+    private data class Entry(val rate: Double, val expiresAt: Long)
+
+    // ponytail: last write wins on concurrent fetches — both computed the same rate anyway
+    private val rateCache = java.util.concurrent.ConcurrentHashMap<String, Entry>()
+    var ttlMs: Long = 15 * 60_000L
 
     suspend fun convert(amount: Double, from: String, to: String): Double {
         if (from == to) return amount
@@ -19,7 +23,10 @@ class CurrencyConverter @Inject constructor(
     suspend fun getRate(from: String, to: String): Double {
         if (from == to) return 1.0
         val key = "$from->$to"
-        rateCache[key]?.let { return it }
+        rateCache[key]?.let {
+            if (System.currentTimeMillis() < it.expiresAt) return it.rate
+            rateCache.remove(key)
+        }
 
         val rate = if (to == "PLN") {
             priceRepo.getPrice(
@@ -33,7 +40,7 @@ class CurrencyConverter @Inject constructor(
             val toPln = getRate(to, "PLN")
             fromPln / toPln
         }
-        rateCache[key] = rate
+        rateCache[key] = Entry(rate, System.currentTimeMillis() + ttlMs)
         return rate
     }
 

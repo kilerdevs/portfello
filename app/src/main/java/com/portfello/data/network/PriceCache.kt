@@ -9,7 +9,7 @@ class PriceCache @Inject constructor() {
 
     private data class Entry(val quote: Quote, val expiresAt: Long)
 
-    private val cache = mutableMapOf<String, Entry>()
+    private val cache = java.util.concurrent.ConcurrentHashMap<String, Entry>()
     private val defaultTtlMs = 5 * 60 * 1000L // 5 min
 
     fun get(key: String): Quote? {
