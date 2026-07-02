@@ -29,6 +29,9 @@ class KeyManager @Inject constructor(
     val isSetUp: Boolean
         get() = configFile.exists()
 
+    val isUnlocked: Boolean
+        get() = cachedDbKey != null
+
     fun setupPin(pin: String) {
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val hash = deriveKey(pin, salt)
