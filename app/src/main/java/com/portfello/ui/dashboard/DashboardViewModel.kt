@@ -3,7 +3,9 @@ package com.portfello.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.portfello.data.AppPrefs
+import com.portfello.data.db.dao.PortfolioSnapshotDao
 import com.portfello.data.db.entity.AssetType
+import com.portfello.data.db.entity.PortfolioSnapshot
 import com.portfello.data.repository.AssetRepository
 import com.portfello.data.repository.PriceRepository
 import com.portfello.domain.AssetValuation
@@ -34,6 +36,7 @@ class DashboardViewModel @Inject constructor(
     private val assetRepo: AssetRepository,
     private val valuationEngine: ValuationEngine,
     private val priceRepo: PriceRepository,
+    private val snapshotDao: PortfolioSnapshotDao,
     private val prefs: AppPrefs
 ) : ViewModel() {
 
@@ -53,6 +56,18 @@ class DashboardViewModel @Inject constructor(
             val allocation = valuations
                 .groupBy { it.asset.type }
                 .mapValues { (_, vs) -> vs.sumOf { it.totalValue } }
+
+            // keep the snapshot history fresh even without background sync (throttled to 1/h)
+            if (total > 0) {
+                val latest = snapshotDao.getLatest(baseCurrency)
+                if (latest == null || System.currentTimeMillis() - latest.timestamp > 3_600_000) {
+                    snapshotDao.insert(PortfolioSnapshot(
+                        timestamp = System.currentTimeMillis(),
+                        totalValue = total,
+                        baseCurrency = baseCurrency
+                    ))
+                }
+            }
 
             val chartData = try {
                 buildChartData(_state.value.selectedRange)
@@ -86,6 +101,20 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun buildChartData(days: Int): List<ChartPoint> {
+        val dayMs = 24L * 3600 * 1000
+        val since = System.currentTimeMillis() - days * dayMs
+        // one point per day (last snapshot wins) — the chart's x-axis is day-resolution
+        val snapshots = snapshotDao.getHistoryList(since, prefs.baseCurrency)
+            .associateBy { it.timestamp / dayMs }
+            .values.sortedBy { it.timestamp }
+        if (snapshots.size >= 2) {
+            return snapshots.map { ChartPoint(it.timestamp, it.totalValue) }
+        }
+        // not enough stored snapshots yet — rebuild from per-asset price history
+        return buildChartDataFromHistory(days)
+    }
+
+    private suspend fun buildChartDataFromHistory(days: Int): List<ChartPoint> {
         val assets = assetRepo.getAllAssets().first()
         val baseCurrency = prefs.baseCurrency
         val dayMs = 24L * 3600 * 1000
