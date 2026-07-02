@@ -132,6 +132,10 @@ fun AssetDetailScreen(
                         formatValue(valuation.totalValue, valuation.baseCurrency),
                         style = MaterialTheme.typography.headlineMedium
                     )
+                    com.portfello.ui.common.ProfitLossText(
+                        valuation.profitLoss, valuation.profitLossPct, valuation.baseCurrency,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                     valuation.pricePerUnit?.let { price ->
                         Text(
                             "Cena: ${formatValue(price, valuation.priceCurrency ?: "")}",

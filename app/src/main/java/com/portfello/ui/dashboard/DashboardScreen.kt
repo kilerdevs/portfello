@@ -71,6 +71,7 @@ import java.util.Locale
 import com.portfello.data.db.entity.AssetType
 import com.portfello.domain.AssetValuation
 import com.portfello.ui.assets.formatValue
+import com.portfello.ui.common.ProfitLossText
 
 private val typeColors = mapOf(
     AssetType.STOCK to Color(0xFF6750A4),
@@ -171,6 +172,19 @@ fun DashboardScreen(
                             formatValue(state.totalValue, state.baseCurrency),
                             style = MaterialTheme.typography.headlineLarge
                         )
+                        val costs = state.valuations.mapNotNull { it.costBasisInBase }
+                        if (costs.isNotEmpty()) {
+                            val totalCost = costs.sum()
+                            val coveredValue = state.valuations
+                                .filter { it.costBasisInBase != null }
+                                .sumOf { it.totalValue }
+                            ProfitLossText(
+                                profitLoss = coveredValue - totalCost,
+                                profitLossPct = if (totalCost != 0.0) (coveredValue - totalCost) / totalCost * 100 else null,
+                                currency = state.baseCurrency,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
             }
@@ -265,6 +279,7 @@ fun DashboardScreen(
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(formatValue(v.totalValue, state.baseCurrency), style = MaterialTheme.typography.titleMedium)
+                            ProfitLossText(v.profitLoss, v.profitLossPct, state.baseCurrency, style = MaterialTheme.typography.labelSmall)
                             v.error?.let {
                                 Text("Offline", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                             }

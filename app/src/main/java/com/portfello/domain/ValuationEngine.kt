@@ -19,8 +19,15 @@ data class AssetValuation(
     val pricePerUnit: Double?,
     val priceCurrency: String?,
     val lastUpdated: Long?,
-    val error: String? = null
-)
+    val error: String? = null,
+    val costBasisInBase: Double? = null
+) {
+    val profitLoss: Double?
+        get() = costBasisInBase?.let { totalValue - it }
+
+    val profitLossPct: Double?
+        get() = costBasisInBase?.takeIf { it != 0.0 }?.let { (totalValue - it) / it * 100 }
+}
 
 @Singleton
 class ValuationEngine @Inject constructor(
@@ -33,7 +40,7 @@ class ValuationEngine @Inject constructor(
     private val currencyConverter: CurrencyConverter
 ) {
     suspend fun valuate(asset: Asset, baseCurrency: String): AssetValuation {
-        return try {
+        val result = try {
             when (asset.type) {
                 AssetType.STOCK, AssetType.BOND_TRADED -> valuateMarketAsset(asset, baseCurrency)
                 AssetType.CURRENCY -> valuateCurrency(asset, baseCurrency)
@@ -44,6 +51,19 @@ class ValuationEngine @Inject constructor(
             }
         } catch (e: Exception) {
             fallbackValuation(asset, baseCurrency, e.message ?: "Unknown error")
+        }
+        return result.copy(costBasisInBase = costBasis(asset, baseCurrency))
+    }
+
+    // ponytail: cost basis converted at the current FX rate; historical FX if anyone asks
+    private suspend fun costBasis(asset: Asset, baseCurrency: String): Double? {
+        val priced = holdingDao.getHoldingsForAsset(asset.id).first().filter { it.purchasePrice != null }
+        if (priced.isEmpty()) return null
+        val costInAssetCur = priced.sumOf { it.quantity * it.purchasePrice!! }
+        return try {
+            currencyConverter.convert(costInAssetCur, asset.currency, baseCurrency)
+        } catch (_: Exception) {
+            null
         }
     }
 
