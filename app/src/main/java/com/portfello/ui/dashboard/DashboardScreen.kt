@@ -71,6 +71,7 @@ import java.util.Locale
 import com.portfello.data.db.entity.AssetType
 import com.portfello.domain.AssetValuation
 import com.portfello.ui.assets.formatValue
+import com.portfello.ui.common.ChangeBadge
 import com.portfello.ui.common.ProfitLossText
 
 private val typeColors = mapOf(
@@ -172,6 +173,13 @@ fun DashboardScreen(
                             formatValue(state.totalValue, state.baseCurrency),
                             style = MaterialTheme.typography.headlineLarge
                         )
+                        if (state.change24hPct != null || state.change7dPct != null) {
+                            Spacer(Modifier.height(4.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ChangeBadge(state.change24hPct, label = "24h")
+                                ChangeBadge(state.change7dPct, label = "7d")
+                            }
+                        }
                         val costs = state.valuations.mapNotNull { it.costBasisInBase }
                         if (costs.isNotEmpty()) {
                             val totalCost = costs.sum()
@@ -279,6 +287,7 @@ fun DashboardScreen(
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(formatValue(v.totalValue, state.baseCurrency), style = MaterialTheme.typography.titleMedium)
+                            ChangeBadge(v.change24hPct)
                             ProfitLossText(v.profitLoss, v.profitLossPct, state.baseCurrency, style = MaterialTheme.typography.labelSmall)
                             v.error?.let {
                                 Text("Offline", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)

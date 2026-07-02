@@ -17,6 +17,9 @@ interface PortfolioSnapshotDao {
     @Query("SELECT * FROM portfolio_snapshot WHERE base_currency = :baseCurrency ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLatest(baseCurrency: String): PortfolioSnapshot?
 
+    @Query("SELECT * FROM portfolio_snapshot WHERE timestamp <= :ts AND base_currency = :baseCurrency ORDER BY timestamp DESC LIMIT 1")
+    suspend fun getLatestBefore(ts: Long, baseCurrency: String): PortfolioSnapshot?
+
     @Insert
     suspend fun insert(snapshot: PortfolioSnapshot)
 }

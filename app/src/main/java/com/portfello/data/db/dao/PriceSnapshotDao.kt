@@ -11,6 +11,9 @@ interface PriceSnapshotDao {
     @Query("SELECT * FROM price_snapshot WHERE asset_id = :assetId ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLatest(assetId: Long): PriceSnapshot?
 
+    @Query("SELECT * FROM price_snapshot WHERE asset_id = :assetId AND timestamp <= :ts ORDER BY timestamp DESC LIMIT 1")
+    suspend fun getLatestBefore(assetId: Long, ts: Long): PriceSnapshot?
+
     @Query("SELECT * FROM price_snapshot WHERE asset_id = :assetId AND timestamp >= :since ORDER BY timestamp")
     fun getHistory(assetId: Long, since: Long): Flow<List<PriceSnapshot>>
 

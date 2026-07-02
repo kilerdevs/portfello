@@ -22,6 +22,8 @@ data class ChartPoint(val timestamp: Long, val value: Double)
 
 data class DashboardState(
     val totalValue: Double = 0.0,
+    val change24hPct: Double? = null,
+    val change7dPct: Double? = null,
     val baseCurrency: String = "PLN",
     val allocation: Map<AssetType, Double> = emptyMap(),
     val valuations: List<AssetValuation> = emptyList(),
@@ -77,6 +79,8 @@ class DashboardViewModel @Inject constructor(
 
             _state.value = DashboardState(
                 totalValue = total,
+                change24hPct = totalChangePct(total, baseCurrency, 24 * 3_600_000L),
+                change7dPct = totalChangePct(total, baseCurrency, 7 * 24 * 3_600_000L),
                 baseCurrency = baseCurrency,
                 allocation = allocation,
                 valuations = valuations,
@@ -98,6 +102,15 @@ class DashboardViewModel @Inject constructor(
             }
             _state.value = _state.value.copy(chartData = chartData)
         }
+    }
+
+    private suspend fun totalChangePct(total: Double, baseCurrency: String, agoMs: Long): Double? {
+        if (total <= 0) return null
+        val old = snapshotDao.getLatestBefore(System.currentTimeMillis() - agoMs, baseCurrency) ?: return null
+        // reject snapshots more than twice the window old — a "24h" badge based on last month is a lie
+        if (old.timestamp < System.currentTimeMillis() - 2 * agoMs) return null
+        if (old.totalValue == 0.0) return null
+        return (total - old.totalValue) / old.totalValue * 100
     }
 
     private suspend fun buildChartData(days: Int): List<ChartPoint> {

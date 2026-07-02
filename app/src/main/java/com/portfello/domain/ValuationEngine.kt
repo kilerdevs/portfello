@@ -20,7 +20,8 @@ data class AssetValuation(
     val priceCurrency: String?,
     val lastUpdated: Long?,
     val error: String? = null,
-    val costBasisInBase: Double? = null
+    val costBasisInBase: Double? = null,
+    val change24hPct: Double? = null
 ) {
     val profitLoss: Double?
         get() = costBasisInBase?.let { totalValue - it }
@@ -52,7 +53,20 @@ class ValuationEngine @Inject constructor(
         } catch (e: Exception) {
             fallbackValuation(asset, baseCurrency, e.message ?: "Unknown error")
         }
-        return result.copy(costBasisInBase = costBasis(asset, baseCurrency))
+        return result.copy(
+            costBasisInBase = costBasis(asset, baseCurrency),
+            change24hPct = change24h(asset, result)
+        )
+    }
+
+    // ponytail: snapshot-or-nothing — no network backfill for the badge
+    private suspend fun change24h(asset: Asset, current: AssetValuation): Double? {
+        val price = current.pricePerUnit ?: return null
+        val now = System.currentTimeMillis()
+        val old = priceSnapshotDao.getLatestBefore(asset.id, now - 24 * 3_600_000L) ?: return null
+        if (old.timestamp < now - 48 * 3_600_000L) return null // too stale to call it "24h"
+        if (old.currency != current.priceCurrency || old.price == 0.0) return null
+        return (price - old.price) / old.price * 100
     }
 
     // ponytail: cost basis converted at the current FX rate; historical FX if anyone asks

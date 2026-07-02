@@ -138,6 +138,7 @@ private fun AssetRow(valuation: AssetValuation, baseCurrency: String, onClick: (
                     formatValue(valuation.totalValue, baseCurrency),
                     style = MaterialTheme.typography.titleMedium
                 )
+                com.portfello.ui.common.ChangeBadge(valuation.change24hPct)
                 com.portfello.ui.common.ProfitLossText(valuation.profitLoss, valuation.profitLossPct, baseCurrency)
                 valuation.error?.let {
                     Text("Offline", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) // ponytail: "Offline" universal, no translation needed
