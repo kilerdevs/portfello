@@ -61,13 +61,6 @@ class SettingsViewModel @Inject constructor(
     ))
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
-    init {
-        if (prefs.coinGeckoApiKey.isNotBlank()) {
-            coinGeckoClient.apiKey = prefs.coinGeckoApiKey
-        }
-        lockState.lockTimeoutMs = prefs.lockTimeoutSec * 1000
-    }
-
     fun update(fn: SettingsState.() -> SettingsState) {
         _state.value = _state.value.fn()
     }

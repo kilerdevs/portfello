@@ -36,6 +36,9 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_SECURE
         )
         enableEdgeToEdge()
+        if (prefs.onboardingComplete) {
+            syncScheduler.schedule(prefs.syncIntervalMin)
+        }
         setContent {
             PortfelloTheme {
                 val status by lockState.status.collectAsState()
@@ -45,9 +48,11 @@ class MainActivity : ComponentActivity() {
                     AppLockStatus.UNLOCKED -> {
                         var onboardingDone by remember { mutableStateOf(prefs.onboardingComplete) }
                         if (!onboardingDone) {
-                            OnboardingScreen(prefs) { onboardingDone = true }
+                            OnboardingScreen(prefs) {
+                                onboardingDone = true
+                                syncScheduler.schedule(prefs.syncIntervalMin)
+                            }
                         } else {
-                            syncScheduler.schedule()
                             val navController = rememberNavController()
                             AppNavGraph(navController = navController)
                         }
