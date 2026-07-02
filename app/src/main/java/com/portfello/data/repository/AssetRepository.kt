@@ -31,6 +31,7 @@ class AssetRepository @Inject constructor(
     suspend fun deleteAsset(asset: Asset) = assetDao.delete(asset)
 
     suspend fun addHolding(holding: AssetHolding): Long = holdingDao.insert(holding)
+    suspend fun updateHolding(holding: AssetHolding) = holdingDao.update(holding)
     suspend fun deleteHolding(holding: AssetHolding) = holdingDao.delete(holding)
 
     suspend fun saveBondDetails(details: BondRetailDetails) = bondDao.upsert(details)

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.portfello.data.db.entity.AssetHolding
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,9 @@ interface AssetHoldingDao {
 
     @Insert
     suspend fun insert(holding: AssetHolding): Long
+
+    @Update
+    suspend fun update(holding: AssetHolding)
 
     @Delete
     suspend fun delete(holding: AssetHolding)

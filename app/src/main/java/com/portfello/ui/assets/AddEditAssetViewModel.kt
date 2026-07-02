@@ -18,11 +18,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class AddEditState(
     val isEdit: Boolean = false,
+    val assetId: Long? = null,
+    val holdingId: Long? = null,
     val type: AssetType = AssetType.STOCK,
     val name: String = "",
     val tickerOrId: String = "",
@@ -64,12 +67,17 @@ class AddEditAssetViewModel @Inject constructor(
     fun loadForEdit(assetId: Long) {
         viewModelScope.launch {
             val asset = assetRepo.getById(assetId) ?: return@launch
+            val holding = assetRepo.getHoldings(assetId).first().firstOrNull()
             _state.value = _state.value.copy(
                 isEdit = true,
+                assetId = assetId,
+                holdingId = holding?.id,
                 type = asset.type,
                 name = asset.name,
                 tickerOrId = asset.tickerOrId ?: "",
                 currency = asset.currency,
+                quantity = holding?.quantity?.toString() ?: "1",
+                purchasePrice = holding?.purchasePrice?.toString() ?: "",
                 notes = asset.notes ?: ""
             )
             when (asset.type) {
@@ -140,25 +148,48 @@ class AddEditAssetViewModel @Inject constructor(
         _state.value = s.copy(isSaving = true, error = null)
         viewModelScope.launch {
             try {
-                val asset = Asset(
-                    type = s.type,
-                    name = s.name.trim(),
-                    tickerOrId = s.tickerOrId.ifBlank { null },
-                    currency = s.currency,
-                    notes = s.notes.ifBlank { null }
-                )
-                val id = assetRepo.addAsset(asset)
-
                 val qty = s.quantity.toDoubleOrNull() ?: 1.0
                 val price = s.purchasePrice.toDoubleOrNull()
-                assetRepo.addHolding(
-                    AssetHolding(
-                        assetId = id,
-                        quantity = qty,
-                        purchasePrice = price,
-                        purchaseDate = System.currentTimeMillis()
+                val id: Long
+                if (s.assetId != null) {
+                    val original = assetRepo.getById(s.assetId) ?: throw Exception("Aktywo nie istnieje")
+                    id = s.assetId
+                    assetRepo.updateAsset(
+                        original.copy(
+                            type = s.type,
+                            name = s.name.trim(),
+                            tickerOrId = s.tickerOrId.ifBlank { null },
+                            currency = s.currency,
+                            notes = s.notes.ifBlank { null }
+                        )
                     )
-                )
+                    val holding = assetRepo.getHoldings(id).first().firstOrNull { it.id == s.holdingId }
+                    if (holding != null) {
+                        assetRepo.updateHolding(holding.copy(quantity = qty, purchasePrice = price))
+                    } else {
+                        assetRepo.addHolding(
+                            AssetHolding(assetId = id, quantity = qty, purchasePrice = price, purchaseDate = System.currentTimeMillis())
+                        )
+                    }
+                } else {
+                    id = assetRepo.addAsset(
+                        Asset(
+                            type = s.type,
+                            name = s.name.trim(),
+                            tickerOrId = s.tickerOrId.ifBlank { null },
+                            currency = s.currency,
+                            notes = s.notes.ifBlank { null }
+                        )
+                    )
+                    assetRepo.addHolding(
+                        AssetHolding(
+                            assetId = id,
+                            quantity = qty,
+                            purchasePrice = price,
+                            purchaseDate = System.currentTimeMillis()
+                        )
+                    )
+                }
 
                 when (s.type) {
                     AssetType.BOND_RETAIL -> {
