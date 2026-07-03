@@ -56,14 +56,15 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.54")
-    ksp("com.google.dagger:hilt-compiler:2.54")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    ksp("com.google.dagger:hilt-compiler:2.57.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    // 2.7+ required for KSP2 (Kotlin 2.2 toolchain); 2.6.x crashes with "unexpected jvm signature V"
+    implementation("androidx.room:room-runtime:2.7.2")
+    implementation("androidx.room:room-ktx:2.7.2")
+    ksp("androidx.room:room-compiler:2.7.2")
 
     // SQLCipher (new library)
     implementation("net.zetetic:sqlcipher-android:4.6.1@aar")
