@@ -168,58 +168,66 @@ class SettingsViewModel @Inject constructor(
 
     private fun exportBackup(uri: Uri, password: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val tempExport = File(context.cacheDir, "portfello_export.db")
             try {
-                val dbPath = context.getDatabasePath("portfello.db").absolutePath
-                db.close()
-                val tempExport = File(context.cacheDir, "portfello_export.db")
-                File(dbPath).copyTo(tempExport, overwrite = true)
-
-                val exportDb = SQLiteDatabase.openDatabase(
-                    tempExport.absolutePath,
-                    keyManager.getDatabaseKey(),
-                    null, SQLiteDatabase.OPEN_READWRITE, null, null
-                )
-                exportDb.changePassword(password)
-                exportDb.close()
-
-                context.contentResolver.openOutputStream(uri)?.use { out ->
-                    FileInputStream(tempExport).use { it.copyTo(out) }
-                }
                 tempExport.delete()
+                // canonical SQLCipher backup: sqlcipher_export through the live
+                // connection sees WAL content and the app keeps running afterwards
+                val live = db.openHelper.writableDatabase
+                live.execSQL(
+                    "ATTACH DATABASE ? AS backup KEY ?",
+                    arrayOf(tempExport.absolutePath, password)
+                )
+                try {
+                    live.query("SELECT sqlcipher_export('backup')").use { it.moveToFirst() }
+                } finally {
+                    live.execSQL("DETACH DATABASE backup")
+                }
+
+                val out = context.contentResolver.openOutputStream(uri, "wt")
+                    ?: error("openOutputStream returned null")
+                out.use { FileInputStream(tempExport).use { input -> input.copyTo(it) } }
                 _state.value = _state.value.copy(message = context.getString(R.string.export_done))
             } catch (e: Exception) {
                 _state.value = _state.value.copy(message = context.getString(R.string.export_failed_fmt, e.message))
+            } finally {
+                tempExport.delete()
             }
         }
     }
 
     private fun importBackup(uri: Uri, password: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val tempImport = File(context.cacheDir, "portfello_import.db")
             try {
-                val tempImport = File(context.cacheDir, "portfello_import.db")
                 context.contentResolver.openInputStream(uri)?.use { input ->
                     FileOutputStream(tempImport).use { input.copyTo(it) }
-                }
-                val testDb = SQLiteDatabase.openDatabase(
-                    tempImport.absolutePath, password,
-                    null, SQLiteDatabase.OPEN_READONLY, null, null
-                )
-                testDb.close()
+                } ?: error("openInputStream returned null")
 
+                // opening verifies the password (throws on mismatch), then rekey
+                // to the current DB key so the app can open it after restart
                 val rekey = SQLiteDatabase.openDatabase(
                     tempImport.absolutePath, password,
                     null, SQLiteDatabase.OPEN_READWRITE, null, null
                 )
-                rekey.changePassword(keyManager.getDatabaseKey())
-                rekey.close()
+                try {
+                    rekey.rawQuery("SELECT count(*) FROM sqlite_master", null).use { it.moveToFirst() }
+                    rekey.changePassword(keyManager.getDatabaseKey())
+                } finally {
+                    rekey.close()
+                }
 
                 db.close()
                 val dbPath = context.getDatabasePath("portfello.db")
                 tempImport.copyTo(dbPath, overwrite = true)
-                tempImport.delete()
+                // stale journal files from the old database would corrupt the imported one
+                File("${dbPath.path}-wal").delete()
+                File("${dbPath.path}-shm").delete()
                 _state.value = _state.value.copy(message = context.getString(R.string.import_done_restart))
             } catch (e: Exception) {
                 _state.value = _state.value.copy(message = context.getString(R.string.import_failed_fmt, e.message))
+            } finally {
+                tempImport.delete()
             }
         }
     }
