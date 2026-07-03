@@ -10,3 +10,7 @@
 local.properties
 
 .kotlin/
+
+# release signing (keep local, back it up!)
+release.keystore
+keystore.properties

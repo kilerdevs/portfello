@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -19,10 +21,27 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // release signing from gitignored keystore.properties (absent on CI/fresh clones)
+    val keystoreProps = rootProject.file("keystore.properties")
+    if (keystoreProps.exists()) {
+        val props = Properties().apply { keystoreProps.inputStream().use { load(it) } }
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(props.getProperty("storeFile").removePrefix("../"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (keystoreProps.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

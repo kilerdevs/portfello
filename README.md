@@ -11,6 +11,7 @@ Stocks · Crypto · Precious metals · Retail bonds · Currencies — all valued
 [![Android](https://img.shields.io/badge/Android-8.0%2B%20(API%2026)-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
 [![Encryption](https://img.shields.io/badge/SQLCipher-AES--256-red?logo=sqlite&logoColor=white)](https://www.zetetic.net/sqlcipher/)
 [![Languages](https://img.shields.io/badge/UI-Polski%20%7C%20English-blue)](#)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 <br/>
 
@@ -98,3 +99,8 @@ All sources are public — **no API keys required**.
 ```
 
 Requires JDK 21 and the Android SDK (min API 26, target API 36).
+Release builds are signed from a local, gitignored `keystore.properties` + `release.keystore`.
+
+## License
+
+[MIT](LICENSE)
