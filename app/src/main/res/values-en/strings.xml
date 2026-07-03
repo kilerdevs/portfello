@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Portfello</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="offline">Offline</string>
+    <string name="positions">Positions</string>
+    <string name="notes">Notes</string>
+    <string name="chart_today">Today</string>
+
+    <!-- Asset types -->
+    <string name="type_stock_short">Stocks</string>
+    <string name="type_bond_retail_short">Bonds (R)</string>
+    <string name="type_bond_traded_short">Bonds (T)</string>
+    <string name="type_currency_short">Currencies</string>
+    <string name="type_metal_short">Metals</string>
+    <string name="type_crypto_short">Crypto</string>
+    <string name="type_manual_short">Manual</string>
+    <string name="type_stock_full">Stocks &amp; ETFs</string>
+    <string name="type_bond_retail_full">Retail bonds</string>
+    <string name="type_bond_traded_full">Traded bonds</string>
+    <string name="type_currency_full">Currencies</string>
+    <string name="type_metal_full">Precious metals</string>
+    <string name="type_crypto_full">Cryptocurrencies</string>
+    <string name="type_manual_full">Manual</string>
+    <string name="type_stock_chip">Stocks/ETF</string>
+    <string name="type_bond_retail_chip">Retail bonds</string>
+    <string name="type_bond_traded_chip">Traded bonds</string>
+    <string name="type_currency_chip">Currency</string>
+    <string name="type_metal_chip">Bullion</string>
+    <string name="type_crypto_chip">Crypto</string>
+    <string name="type_manual_chip">Manual</string>
+
+    <!-- Dashboard -->
+    <string name="refresh">Refresh</string>
+    <string name="assets">Assets</string>
+    <string name="settings">Settings</string>
+    <string name="portfolio_empty">Your portfolio is empty</string>
+    <string name="portfolio_empty_hint">Go to Assets to add your first one</string>
+    <string name="portfolio_value">PORTFOLIO VALUE</string>
+    <string name="allocation">ALLOCATION</string>
+    <string name="value_over_time">VALUE OVER TIME</string>
+    <string name="no_chart_data">No historical data for the selected period</string>
+    <string name="more_positions">… and %1$d more — go to Assets</string>
+
+    <!-- Asset list -->
+    <string name="add_asset">Add asset</string>
+    <string name="no_assets">No assets</string>
+    <string name="no_assets_hint">Add your first one with the + button</string>
+
+    <!-- Asset detail -->
+    <string name="asset">Asset</string>
+    <string name="edit">Edit</string>
+    <string name="delete_asset_title">Delete asset?</string>
+    <string name="delete_asset_text">This will permanently delete this asset and all related data.</string>
+    <string name="value">Value</string>
+    <string name="price_fmt">Price: %1$s</string>
+    <string name="updated_fmt">Updated: %1$s</string>
+    <string name="history_error_fmt">Failed to fetch history: %1$s</string>
+    <string name="quantity_fmt">Quantity: %1$s</string>
+    <string name="at_price_fmt">@ %1$s</string>
+
+    <!-- Add/edit asset -->
+    <string name="edit_asset">Edit asset</string>
+    <string name="type">Type</string>
+    <string name="name">Name</string>
+    <string name="ticker">Ticker</string>
+    <string name="search_crypto">Search cryptocurrency</string>
+    <string name="currency">Currency</string>
+    <string name="currency_iso">ISO currency code (e.g. USD, EUR)</string>
+    <string name="current_value">Current value</string>
+    <string name="quantity_units">Quantity / Units</string>
+    <string name="purchase_price_opt">Purchase price (optional)</string>
+    <string name="notes_opt">Notes (optional)</string>
+    <string name="metal">Metal</string>
+    <string name="popular_coins">Popular coins</string>
+    <string name="custom_coin">Custom</string>
+    <string name="total_weight_grams">Total weight (grams)</string>
+    <string name="purity_hint">Purity (e.g. 0.9999)</string>
+    <string name="premium_pln">Premium (PLN per piece)</string>
+    <string name="bond_series_hint">Series (e.g. ROR0725)</string>
+    <string name="bond_nominal_pln">Nominal value (PLN)</string>
+    <string name="bond_rate_pct" formatted="false">Current interest rate (%)</string>
+    <string name="capitalization">Capitalization</string>
+    <string name="cap_annual">Annual capitalization</string>
+    <string name="cap_end">One-time at maturity</string>
+    <string name="name_required">Name is required</string>
+    <string name="asset_missing">Asset does not exist</string>
+    <string name="history_fetch_error">Error fetching history</string>
+
+    <!-- Settings -->
+    <string name="section_general">General</string>
+    <string name="language">Language</string>
+    <string name="base_currency">Base currency</string>
+    <string name="sync_interval_min">Sync interval (min)</string>
+    <string name="coingecko_key_opt">CoinGecko key (optional)</string>
+    <string name="section_security">Security</string>
+    <string name="lock_after_sec">Lock after (seconds of inactivity)</string>
+    <string name="wipe_after_attempts">Wipe database after N wrong PINs (0 = off)</string>
+    <string name="biometric_unlock">Biometric unlock</string>
+    <string name="save_settings">Save settings</string>
+    <string name="change_pin">Change PIN</string>
+    <string name="lock_now">Lock now</string>
+    <string name="section_backup">Backup</string>
+    <string name="backup_info">Export/Import creates or restores an encrypted backup.\nBackups are protected by a separate password.</string>
+    <string name="export">Export</string>
+    <string name="import_label">Import</string>
+    <string name="section_net_log">Network log</string>
+    <string name="net_log_empty">No entries — they will appear after the first sync.</string>
+    <string name="clear_log">Clear log</string>
+    <string name="change_pin_title">Change PIN</string>
+    <string name="current_pin">Current PIN</string>
+    <string name="new_pin">New PIN</string>
+    <string name="change">Change</string>
+    <string name="backup_password_title">Backup password</string>
+    <string name="import_password_title">Import password</string>
+    <string name="password">Password</string>
+    <string name="settings_saved">Settings saved</string>
+    <string name="pin_changed_restart">PIN changed — restart the app</string>
+    <string name="pin_change_failed_fmt">PIN change failed: %1$s</string>
+    <string name="wrong_current_pin">Wrong current PIN</string>
+    <string name="export_done">Backup exported</string>
+    <string name="export_failed_fmt">Export failed: %1$s</string>
+    <string name="import_done_restart">Backup imported — restart the app</string>
+    <string name="import_failed_fmt">Import failed: %1$s</string>
+    <string name="biometric_enabled_msg">Biometric unlock enabled</string>
+    <string name="biometric_enable_failed">Failed to enable biometrics</string>
+    <string name="biometric_disabled_msg">Biometric unlock disabled</string>
+    <string name="biometric_enroll_title">Enable biometric unlock</string>
+
+    <!-- Lock screen -->
+    <string name="create_pin">Create a PIN (min. 4 digits)</string>
+    <string name="confirm_pin">Confirm PIN</string>
+    <string name="enter_pin">Enter PIN</string>
+    <string name="too_many_attempts">Too many attempts. Please wait.</string>
+    <string name="unlock_biometric">Unlock with biometrics</string>
+    <string name="unlock_title">Unlock Portfello</string>
+    <string name="use_pin">Use PIN</string>
+    <string name="pin_min_length">PIN must be at least 4 digits</string>
+    <string name="pins_mismatch">PINs do not match — try again</string>
+    <string name="wrong_pin">Wrong PIN</string>
+    <string name="data_wiped">Data has been wiped. Set a new PIN.</string>
+    <string name="biometric_unlock_failed">Biometric unlock failed</string>
+
+    <!-- Onboarding -->
+    <string name="choose_base_currency">Choose your base currency</string>
+    <string name="base_currency_hint">All assets will be converted to this currency</string>
+    <string name="continue_label">Continue</string>
+</resources>

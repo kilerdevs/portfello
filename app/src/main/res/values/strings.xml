@@ -94,6 +94,9 @@
 
     <!-- Settings -->
     <string name="section_general">Ogólne</string>
+    <string name="language">Język</string>
+    <string name="lang_polish" translatable="false">Polski</string>
+    <string name="lang_english" translatable="false">English</string>
     <string name="base_currency">Waluta bazowa</string>
     <string name="sync_interval_min">Interwał synchronizacji (min)</string>
     <string name="coingecko_key_opt">Klucz CoinGecko (opcjonalnie)</string>

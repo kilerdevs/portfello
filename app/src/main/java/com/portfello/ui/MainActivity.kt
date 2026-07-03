@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,9 +22,10 @@ import com.portfello.ui.theme.PortfelloTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-// FragmentActivity is required by BiometricPrompt; setContent works fine on it
+// AppCompatActivity (a FragmentActivity, so BiometricPrompt still works) is
+// required for per-app locale switching via AppCompatDelegate
 @AndroidEntryPoint
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var lockState: LockState
     @Inject lateinit var syncScheduler: SyncScheduler
