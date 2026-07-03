@@ -1,8 +1,11 @@
 package com.portfello.ui.theme
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
 
@@ -41,6 +44,12 @@ fun PortfelloTheme(content: @Composable () -> Unit) {
         colorScheme = DarkColors,
         typography = PortfelloTypography
     ) {
-        ProvideVicoTheme(rememberM3VicoTheme(), content)
+        ProvideVicoTheme(rememberM3VicoTheme()) {
+            // root Surface sets LocalContentColor so screens without a Scaffold
+            // (onboarding) don't fall back to black text
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                content()
+            }
+        }
     }
 }
