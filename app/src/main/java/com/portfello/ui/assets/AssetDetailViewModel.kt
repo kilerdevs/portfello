@@ -1,7 +1,9 @@
 package com.portfello.ui.assets
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.portfello.R
 import com.portfello.data.AppPrefs
 import com.portfello.data.db.entity.Asset
 import com.portfello.data.db.entity.AssetHolding
@@ -13,6 +15,7 @@ import com.portfello.domain.AssetValuation
 import com.portfello.domain.BullionValuator
 import com.portfello.domain.ValuationEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +38,8 @@ class AssetDetailViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val valuationEngine: ValuationEngine,
     private val bullionValuator: BullionValuator,
-    private val prefs: AppPrefs
+    private val prefs: AppPrefs,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AssetDetailState())
@@ -83,7 +87,7 @@ class AssetDetailViewModel @Inject constructor(
                 _state.value = _state.value.copy(priceHistory = history, historyError = null)
             }
             .onFailure { e ->
-                _state.value = _state.value.copy(historyError = e.message ?: "Błąd pobierania historii")
+                _state.value = _state.value.copy(historyError = e.message ?: context.getString(R.string.history_fetch_error))
             }
     }
 }

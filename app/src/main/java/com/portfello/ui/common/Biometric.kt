@@ -5,6 +5,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.portfello.R
 import javax.crypto.Cipher
 
 fun canUseBiometrics(context: Context): Boolean =
@@ -29,7 +30,7 @@ fun showBiometricPrompt(
     )
     val info = BiometricPrompt.PromptInfo.Builder()
         .setTitle(title)
-        .setNegativeButtonText("Użyj PIN-u")
+        .setNegativeButtonText(activity.getString(R.string.use_pin))
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
         .build()
     prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))

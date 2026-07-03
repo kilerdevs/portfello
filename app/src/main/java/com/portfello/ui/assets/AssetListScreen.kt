@@ -30,9 +30,11 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.portfello.R
 import com.portfello.data.db.entity.AssetType
 import com.portfello.domain.AssetValuation
 
@@ -49,17 +51,17 @@ fun AssetListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Aktywa") },
+                title = { Text(stringResource(R.string.assets)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Wstecz")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddAsset) {
-                Icon(Icons.Default.Add, "Dodaj aktywo")
+                Icon(Icons.Default.Add, stringResource(R.string.add_asset))
             }
         }
     ) { padding ->
@@ -82,10 +84,10 @@ fun AssetListScreen(
                     tint = MaterialTheme.colorScheme.outlineVariant
                 )
                 Spacer(Modifier.height(16.dp))
-                Text("Brak aktywów", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.no_assets), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Dodaj pierwsze przyciskiem +",
+                    stringResource(R.string.no_assets_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -141,20 +143,21 @@ private fun AssetRow(valuation: AssetValuation, baseCurrency: String, onClick: (
                 com.portfello.ui.common.ChangeBadge(valuation.change24hPct)
                 com.portfello.ui.common.ProfitLossText(valuation.profitLoss, valuation.profitLossPct, baseCurrency)
                 valuation.error?.let {
-                    Text("Offline", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) // ponytail: "Offline" universal, no translation needed
+                    Text(stringResource(R.string.offline), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
             }
         }
     }
 }
 
-private fun typeLabel(type: AssetType) = when (type) {
-    AssetType.STOCK -> "Akcje i ETF-y"
-    AssetType.BOND_RETAIL -> "Obligacje detaliczne"
-    AssetType.BOND_TRADED -> "Obligacje giełdowe"
-    AssetType.CURRENCY -> "Waluty"
-    AssetType.METAL_BULLION -> "Metale szlachetne"
-    AssetType.CRYPTO -> "Kryptowaluty"
-    AssetType.MANUAL -> "Ręczne"
-}
+@Composable
+private fun typeLabel(type: AssetType) = stringResource(when (type) {
+    AssetType.STOCK -> R.string.type_stock_full
+    AssetType.BOND_RETAIL -> R.string.type_bond_retail_full
+    AssetType.BOND_TRADED -> R.string.type_bond_traded_full
+    AssetType.CURRENCY -> R.string.type_currency_full
+    AssetType.METAL_BULLION -> R.string.type_metal_full
+    AssetType.CRYPTO -> R.string.type_crypto_full
+    AssetType.MANUAL -> R.string.type_manual_full
+})
 

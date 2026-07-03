@@ -3,6 +3,7 @@ package com.portfello.ui.lock
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.portfello.R
 import com.portfello.data.AppPrefs
 import com.portfello.data.crypto.AppLockStatus
 import com.portfello.data.crypto.KeyManager
@@ -76,7 +77,7 @@ class LockViewModel @Inject constructor(
         val current = _uiState.value
         if (current.isProcessing) return
         if (current.pin.length < 4) {
-            _uiState.value = current.copy(error = "PIN musi mieć co najmniej 4 cyfry")
+            _uiState.value = current.copy(error = context.getString(R.string.pin_min_length))
             return
         }
 
@@ -91,7 +92,7 @@ class LockViewModel @Inject constructor(
 
     private fun confirmSetup(pin: String, confirm: String) {
         if (pin != confirm) {
-            _uiState.value = LockUiState(error = "PINy się nie zgadzają — spróbuj ponownie")
+            _uiState.value = LockUiState(error = context.getString(R.string.pins_mismatch))
             return
         }
         _uiState.value = _uiState.value.copy(isProcessing = true)
@@ -106,7 +107,7 @@ class LockViewModel @Inject constructor(
         val current = _uiState.value
         val now = System.currentTimeMillis()
         if (now < current.lockoutEndTime) {
-            _uiState.value = current.copy(error = "Zbyt wiele prób. Poczekaj.")
+            _uiState.value = current.copy(error = context.getString(R.string.too_many_attempts))
             return
         }
 
@@ -130,7 +131,7 @@ class LockViewModel @Inject constructor(
                     else -> 0L
                 }
                 _uiState.value = LockUiState(
-                    error = "Błędny PIN",
+                    error = context.getString(R.string.wrong_pin),
                     failedAttempts = attempts,
                     lockoutEndTime = if (lockoutMs > 0) now + lockoutMs else 0
                 )
@@ -154,7 +155,7 @@ class LockViewModel @Inject constructor(
                 lockState.onUnlocked()
                 _uiState.value = LockUiState()
             } else {
-                _uiState.value = LockUiState(error = "Odblokowanie biometryczne nie powiodło się")
+                _uiState.value = LockUiState(error = context.getString(R.string.biometric_unlock_failed))
             }
         }
     }
@@ -165,7 +166,7 @@ class LockViewModel @Inject constructor(
         listOf(dbFile, java.io.File("${dbFile.path}-wal"), java.io.File("${dbFile.path}-shm")).forEach { it.delete() }
         java.io.File(context.filesDir, "crypto_config.json").delete()
         prefs.onboardingComplete = false
-        _uiState.value = LockUiState(error = "Dane zostały usunięte. Ustaw nowy PIN.")
+        _uiState.value = LockUiState(error = context.getString(R.string.data_wiped))
         lockState.resetToSetup()
     }
 }

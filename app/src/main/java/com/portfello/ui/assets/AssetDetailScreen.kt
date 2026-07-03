@@ -36,9 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.portfello.R
 import com.portfello.ui.common.TimeLineChart
 import com.portfello.ui.common.formatMoney
 import java.text.SimpleDateFormat
@@ -61,15 +63,15 @@ fun AssetDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Usunąć aktywo?") },
-            text = { Text("To trwale usunie to aktywo i wszystkie powiązane dane.") },
+            title = { Text(stringResource(R.string.delete_asset_title)) },
+            text = { Text(stringResource(R.string.delete_asset_text)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.deleteAsset(onBack) }) {
-                    Text("Usuń", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Anuluj") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -77,18 +79,18 @@ fun AssetDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state.valuation?.asset?.name ?: "Aktywo") },
+                title = { Text(state.valuation?.asset?.name ?: stringResource(R.string.asset)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Wstecz")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { onEdit(assetId) }) {
-                        Icon(Icons.Default.Edit, "Edytuj")
+                        Icon(Icons.Default.Edit, stringResource(R.string.edit))
                     }
                     IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, "Usuń")
+                        Icon(Icons.Default.Delete, stringResource(R.string.delete))
                     }
                 }
             )
@@ -115,7 +117,7 @@ fun AssetDetailScreen(
         ) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Wartość", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.value), style = MaterialTheme.typography.labelMedium)
                     Text(
                         formatMoney(valuation.totalValue, valuation.baseCurrency),
                         style = MaterialTheme.typography.headlineMedium
@@ -126,7 +128,7 @@ fun AssetDetailScreen(
                     )
                     valuation.pricePerUnit?.let { price ->
                         Text(
-                            "Cena: ${formatMoney(price, valuation.priceCurrency ?: "")}",
+                            stringResource(R.string.price_fmt, formatMoney(price, valuation.priceCurrency ?: "")),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -136,7 +138,7 @@ fun AssetDetailScreen(
                     }
                     valuation.lastUpdated?.let {
                         val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                        Text("Aktualizacja: ${fmt.format(Date(it))}", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.updated_fmt, fmt.format(Date(it))), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -159,27 +161,27 @@ fun AssetDetailScreen(
             }
             state.historyError?.let {
                 Text(
-                    "Nie udało się pobrać historii: $it",
+                    stringResource(R.string.history_error_fmt, it),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            Text("Pozycje", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.positions), style = MaterialTheme.typography.titleSmall)
             state.holdings.forEach { h ->
                 Card(Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         val qtyStr = if (h.quantity == h.quantity.toLong().toDouble()) h.quantity.toLong().toString() else h.quantity.toString()
-                        Text("Ilość: $qtyStr")
+                        Text(stringResource(R.string.quantity_fmt, qtyStr))
                         h.purchasePrice?.let {
-                            Text("@ ${formatMoney(it, valuation.asset.currency)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.at_price_fmt, formatMoney(it, valuation.asset.currency)), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
             }
 
             valuation.asset.notes?.let {
-                Text("Notatki", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.notes), style = MaterialTheme.typography.titleSmall)
                 Text(it, style = MaterialTheme.typography.bodyMedium)
             }
         }

@@ -7,6 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.stringResource
+import com.portfello.R
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -66,12 +68,13 @@ fun TimeLineChart(points: List<Pair<Long, Double>>, modifier: Modifier = Modifie
         }
     }
 
-    val xAxisFormat = remember(baseDay, spanDays) {
+    val todayLabel = stringResource(R.string.chart_today)
+    val xAxisFormat = remember(baseDay, spanDays, todayLabel) {
         val fmt = SimpleDateFormat(if (spanDays > 90) "MM.yy" else "dd.MM", Locale.getDefault())
         val today = System.currentTimeMillis() / dayMs
         CartesianValueFormatter { _, value, _ ->
             val day = baseDay + Math.round(value)
-            if (day >= today) "Dziś" else fmt.format(Date(day * dayMs))
+            if (day >= today) todayLabel else fmt.format(Date(day * dayMs))
         }
     }
 

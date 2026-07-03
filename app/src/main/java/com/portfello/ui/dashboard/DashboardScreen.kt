@@ -49,9 +49,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.portfello.R
 import com.portfello.data.db.entity.AssetType
 import com.portfello.domain.AssetValuation
 import com.portfello.ui.common.ChangeBadge
@@ -84,16 +86,16 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Portfello") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(Icons.Default.Refresh, "Odśwież")
+                        Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
                     }
                     IconButton(onClick = onNavigateToAssets) {
-                        Icon(Icons.AutoMirrored.Filled.List, "Aktywa")
+                        Icon(Icons.AutoMirrored.Filled.List, stringResource(R.string.assets))
                     }
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, "Ustawienia")
+                        Icon(Icons.Default.Settings, stringResource(R.string.settings))
                     }
                 }
             )
@@ -120,12 +122,12 @@ fun DashboardScreen(
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Portfel jest pusty",
+                    stringResource(R.string.portfolio_empty),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Przejdź do Aktywów, aby dodać pierwsze",
+                    stringResource(R.string.portfolio_empty_hint),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -151,7 +153,7 @@ fun DashboardScreen(
                 item {
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("ALOKACJA", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
+                            Text(stringResource(R.string.allocation), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
                             Spacer(Modifier.height(16.dp))
                             AllocationDonut(
                                 allocation = state.allocation,
@@ -185,7 +187,7 @@ fun DashboardScreen(
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("WARTOŚĆ W CZASIE", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.value_over_time), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                         val ranges = listOf(1 to "1D", 7 to "7D", 30 to "1M", 90 to "3M", 365 to "1Y")
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -205,7 +207,7 @@ fun DashboardScreen(
                             )
                         } else {
                             Text(
-                                "Brak danych historycznych dla wybranego okresu",
+                                stringResource(R.string.no_chart_data),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -215,7 +217,7 @@ fun DashboardScreen(
             }
 
             item {
-                Text("Pozycje", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.positions), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             }
             val sorted = state.valuations.sortedByDescending { it.totalValue }
             items(sorted.take(10), key = { it.asset.id }) { v ->
@@ -240,7 +242,7 @@ fun DashboardScreen(
                             ChangeBadge(v.change24hPct)
                             ProfitLossText(v.profitLoss, v.profitLossPct, state.baseCurrency, style = MaterialTheme.typography.labelSmall)
                             v.error?.let {
-                                Text("Offline", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                                Text(stringResource(R.string.offline), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                             }
                         }
                     }
@@ -249,7 +251,7 @@ fun DashboardScreen(
             if (sorted.size > 10) {
                 item {
                     Text(
-                        "… i ${sorted.size - 10} więcej — przejdź do Aktywów",
+                        stringResource(R.string.more_positions, sorted.size - 10),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxWidth(),
@@ -279,7 +281,7 @@ private fun HeroCard(state: DashboardState) {
     ) {
         Column {
             Text(
-                "WARTOŚĆ PORTFELA",
+                stringResource(R.string.portfolio_value),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -338,6 +340,7 @@ private fun AllocationDonut(allocation: Map<AssetType, Double>, total: Double, m
     }
 }
 
+@Composable
 private fun positionSubtitle(v: AssetValuation): String {
     val type = typeShortLabel(v.asset.type)
     return when (v.asset.type) {
@@ -350,12 +353,13 @@ private fun positionSubtitle(v: AssetValuation): String {
     }
 }
 
-private fun typeShortLabel(type: AssetType) = when (type) {
-    AssetType.STOCK -> "Akcje"
-    AssetType.BOND_RETAIL -> "Obligacje (D)"
-    AssetType.BOND_TRADED -> "Obligacje (G)"
-    AssetType.CURRENCY -> "Waluty"
-    AssetType.METAL_BULLION -> "Metale"
-    AssetType.CRYPTO -> "Krypto"
-    AssetType.MANUAL -> "Ręczne"
-}
+@Composable
+private fun typeShortLabel(type: AssetType) = stringResource(when (type) {
+    AssetType.STOCK -> R.string.type_stock_short
+    AssetType.BOND_RETAIL -> R.string.type_bond_retail_short
+    AssetType.BOND_TRADED -> R.string.type_bond_traded_short
+    AssetType.CURRENCY -> R.string.type_currency_short
+    AssetType.METAL_BULLION -> R.string.type_metal_short
+    AssetType.CRYPTO -> R.string.type_crypto_short
+    AssetType.MANUAL -> R.string.type_manual_short
+})

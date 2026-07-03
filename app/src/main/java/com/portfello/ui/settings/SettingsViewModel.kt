@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.portfello.R
 import com.portfello.data.AppPrefs
 import com.portfello.data.crypto.KeyManager
 import com.portfello.data.crypto.LockState
@@ -77,7 +78,7 @@ class SettingsViewModel @Inject constructor(
         prefs.lockTimeoutSec = s.lockTimeoutSec
         lockState.lockTimeoutMs = s.lockTimeoutSec * 1000
         prefs.wipeAfterAttempts = s.wipeAfterAttempts
-        _state.value = s.copy(message = "Ustawienia zapisane")
+        _state.value = s.copy(message = context.getString(R.string.settings_saved))
     }
 
     fun biometricEncryptCipher() = keyManager.getBiometricEncryptCipher()
@@ -86,13 +87,13 @@ class SettingsViewModel @Inject constructor(
         val ok = keyManager.enableBiometric(cipher)
         _state.value = _state.value.copy(
             biometricEnabled = ok,
-            message = if (ok) "Odblokowanie biometryczne włączone" else "Nie udało się włączyć biometrii"
+            message = context.getString(if (ok) R.string.biometric_enabled_msg else R.string.biometric_enable_failed)
         )
     }
 
     fun disableBiometric() {
         keyManager.disableBiometric()
-        _state.value = _state.value.copy(biometricEnabled = false, message = "Odblokowanie biometryczne wyłączone")
+        _state.value = _state.value.copy(biometricEnabled = false, message = context.getString(R.string.biometric_disabled_msg))
     }
 
     fun changePin() {
@@ -116,18 +117,18 @@ class SettingsViewModel @Inject constructor(
                         showChangePinDialog = false, oldPin = "", newPin = "",
                         // new PIN derives a new DB key, so the old wrapped biometric key is void
                         biometricEnabled = keyManager.biometricEnabled,
-                        message = "PIN zmieniony — uruchom ponownie aplikację"
+                        message = context.getString(R.string.pin_changed_restart)
                     )
                 } catch (e: Exception) {
                     _state.value = s.copy(
                         showChangePinDialog = false, oldPin = "", newPin = "",
-                        message = "Zmiana PIN-u nie powiodła się: ${e.message}"
+                        message = context.getString(R.string.pin_change_failed_fmt, e.message)
                     )
                 }
             } else {
                 _state.value = s.copy(
                     showChangePinDialog = false, oldPin = "", newPin = "",
-                    message = "Błędny aktualny PIN"
+                    message = context.getString(R.string.wrong_current_pin)
                 )
             }
         }
@@ -185,9 +186,9 @@ class SettingsViewModel @Inject constructor(
                     FileInputStream(tempExport).use { it.copyTo(out) }
                 }
                 tempExport.delete()
-                _state.value = _state.value.copy(message = "Kopia zapasowa wyeksportowana")
+                _state.value = _state.value.copy(message = context.getString(R.string.export_done))
             } catch (e: Exception) {
-                _state.value = _state.value.copy(message = "Eksport nie powiódł się: ${e.message}")
+                _state.value = _state.value.copy(message = context.getString(R.string.export_failed_fmt, e.message))
             }
         }
     }
@@ -216,9 +217,9 @@ class SettingsViewModel @Inject constructor(
                 val dbPath = context.getDatabasePath("portfello.db")
                 tempImport.copyTo(dbPath, overwrite = true)
                 tempImport.delete()
-                _state.value = _state.value.copy(message = "Kopia zaimportowana — uruchom ponownie")
+                _state.value = _state.value.copy(message = context.getString(R.string.import_done_restart))
             } catch (e: Exception) {
-                _state.value = _state.value.copy(message = "Import nie powiódł się: ${e.message}")
+                _state.value = _state.value.copy(message = context.getString(R.string.import_failed_fmt, e.message))
             }
         }
     }

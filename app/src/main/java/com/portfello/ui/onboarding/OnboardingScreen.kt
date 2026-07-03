@@ -20,7 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.portfello.R
 import com.portfello.data.AppPrefs
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -34,12 +36,12 @@ fun OnboardingScreen(prefs: AppPrefs, onDone: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Portfello", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(16.dp))
-        Text("Wybierz walutę bazową", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.choose_base_currency), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
         Text(
-            "Wszystkie aktywa będą przeliczane na tę walutę",
+            stringResource(R.string.base_currency_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -62,7 +64,7 @@ fun OnboardingScreen(prefs: AppPrefs, onDone: () -> Unit) {
             prefs.onboardingComplete = true
             onDone()
         }, Modifier.fillMaxWidth()) {
-            Text("Kontynuuj")
+            Text(stringResource(R.string.continue_label))
         }
     }
 }

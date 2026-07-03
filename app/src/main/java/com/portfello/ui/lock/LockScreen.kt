@@ -31,10 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.portfello.R
 import com.portfello.ui.common.canUseBiometrics
 import com.portfello.ui.common.showBiometricPrompt
 
@@ -47,10 +49,11 @@ fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
     val biometricsUsable = remember {
         !isSetup && viewModel.biometricEnabled && canUseBiometrics(context)
     }
+    val unlockTitle = stringResource(R.string.unlock_title)
     val launchBiometric = launchBiometric@{
         val activity = context as? FragmentActivity ?: return@launchBiometric
         val cipher = viewModel.biometricDecryptCipher() ?: return@launchBiometric
-        showBiometricPrompt(activity, cipher, "Odblokuj Portfello") { authorized ->
+        showBiometricPrompt(activity, cipher, unlockTitle) { authorized ->
             viewModel.onBiometricUnlock(authorized)
         }
     }
@@ -76,7 +79,7 @@ fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = "Portfello",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
@@ -92,11 +95,11 @@ fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = when {
-                isSetup && !state.isConfirmStep -> "Utwórz PIN (min. 4 cyfry)"
-                isSetup && state.isConfirmStep -> "Potwierdź PIN"
-                else -> "Wprowadź PIN"
-            },
+            text = stringResource(when {
+                isSetup && !state.isConfirmStep -> R.string.create_pin
+                isSetup && state.isConfirmStep -> R.string.confirm_pin
+                else -> R.string.enter_pin
+            }),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -119,7 +122,7 @@ fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
 
         if (state.lockoutEndTime > System.currentTimeMillis()) {
             Text(
-                text = "Zbyt wiele prób. Poczekaj.",
+                text = stringResource(R.string.too_many_attempts),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -138,7 +141,7 @@ fun LockScreen(viewModel: LockViewModel = hiltViewModel()) {
             if (biometricsUsable) {
                 Spacer(Modifier.height(16.dp))
                 TextButton(onClick = { launchBiometric() }) {
-                    Text("Odblokuj biometrycznie")
+                    Text(stringResource(R.string.unlock_biometric))
                 }
             }
         }

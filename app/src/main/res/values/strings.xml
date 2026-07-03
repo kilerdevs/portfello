@@ -1,4 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Portfello</string>
+
+    <!-- Common -->
+    <string name="back">Wstecz</string>
+    <string name="cancel">Anuluj</string>
+    <string name="delete">Usuń</string>
+    <string name="save">Zapisz</string>
+    <string name="offline">Offline</string>
+    <string name="positions">Pozycje</string>
+    <string name="notes">Notatki</string>
+    <string name="chart_today">Dziś</string>
+
+    <!-- Asset types -->
+    <string name="type_stock_short">Akcje</string>
+    <string name="type_bond_retail_short">Obligacje (D)</string>
+    <string name="type_bond_traded_short">Obligacje (G)</string>
+    <string name="type_currency_short">Waluty</string>
+    <string name="type_metal_short">Metale</string>
+    <string name="type_crypto_short">Krypto</string>
+    <string name="type_manual_short">Ręczne</string>
+    <string name="type_stock_full">Akcje i ETF-y</string>
+    <string name="type_bond_retail_full">Obligacje detaliczne</string>
+    <string name="type_bond_traded_full">Obligacje giełdowe</string>
+    <string name="type_currency_full">Waluty</string>
+    <string name="type_metal_full">Metale szlachetne</string>
+    <string name="type_crypto_full">Kryptowaluty</string>
+    <string name="type_manual_full">Ręczne</string>
+    <string name="type_stock_chip">Akcje/ETF</string>
+    <string name="type_bond_retail_chip">Obl. detaliczne</string>
+    <string name="type_bond_traded_chip">Obl. giełdowe</string>
+    <string name="type_currency_chip">Waluta</string>
+    <string name="type_metal_chip">Kruszec</string>
+    <string name="type_crypto_chip">Krypto</string>
+    <string name="type_manual_chip">Ręczne</string>
+
+    <!-- Dashboard -->
+    <string name="refresh">Odśwież</string>
+    <string name="assets">Aktywa</string>
+    <string name="settings">Ustawienia</string>
+    <string name="portfolio_empty">Portfel jest pusty</string>
+    <string name="portfolio_empty_hint">Przejdź do Aktywów, aby dodać pierwsze</string>
+    <string name="portfolio_value">WARTOŚĆ PORTFELA</string>
+    <string name="allocation">ALOKACJA</string>
+    <string name="value_over_time">WARTOŚĆ W CZASIE</string>
+    <string name="no_chart_data">Brak danych historycznych dla wybranego okresu</string>
+    <string name="more_positions">… i %1$d więcej — przejdź do Aktywów</string>
+
+    <!-- Asset list -->
+    <string name="add_asset">Dodaj aktywo</string>
+    <string name="no_assets">Brak aktywów</string>
+    <string name="no_assets_hint">Dodaj pierwsze przyciskiem +</string>
+
+    <!-- Asset detail -->
+    <string name="asset">Aktywo</string>
+    <string name="edit">Edytuj</string>
+    <string name="delete_asset_title">Usunąć aktywo?</string>
+    <string name="delete_asset_text">To trwale usunie to aktywo i wszystkie powiązane dane.</string>
+    <string name="value">Wartość</string>
+    <string name="price_fmt">Cena: %1$s</string>
+    <string name="updated_fmt">Aktualizacja: %1$s</string>
+    <string name="history_error_fmt">Nie udało się pobrać historii: %1$s</string>
+    <string name="quantity_fmt">Ilość: %1$s</string>
+    <string name="at_price_fmt">@ %1$s</string>
+
+    <!-- Add/edit asset -->
+    <string name="edit_asset">Edytuj aktywo</string>
+    <string name="type">Typ</string>
+    <string name="name">Nazwa</string>
+    <string name="ticker">Ticker</string>
+    <string name="search_crypto">Szukaj kryptowaluty</string>
+    <string name="currency">Waluta</string>
+    <string name="currency_iso">Kod waluty ISO (np. USD, EUR)</string>
+    <string name="current_value">Aktualna wartość</string>
+    <string name="quantity_units">Ilość / Jednostki</string>
+    <string name="purchase_price_opt">Cena zakupu (opcjonalnie)</string>
+    <string name="notes_opt">Notatki (opcjonalnie)</string>
+    <string name="metal">Metal</string>
+    <string name="popular_coins">Popularne monety</string>
+    <string name="custom_coin">Własny</string>
+    <string name="total_weight_grams">Waga całkowita (gramy)</string>
+    <string name="purity_hint">Próba (np. 0.9999)</string>
+    <string name="premium_pln">Premia (PLN za sztukę)</string>
+    <string name="bond_series_hint">Seria (np. ROR0725)</string>
+    <string name="bond_nominal_pln">Wartość nominalna (PLN)</string>
+    <string name="bond_rate_pct" formatted="false">Aktualne oprocentowanie (%)</string>
+    <string name="capitalization">Kapitalizacja</string>
+    <string name="cap_annual">Kapitalizacja roczna</string>
+    <string name="cap_end">Jednorazowa na koniec</string>
+    <string name="name_required">Nazwa jest wymagana</string>
+    <string name="asset_missing">Aktywo nie istnieje</string>
+    <string name="history_fetch_error">Błąd pobierania historii</string>
+
+    <!-- Settings -->
+    <string name="section_general">Ogólne</string>
+    <string name="base_currency">Waluta bazowa</string>
+    <string name="sync_interval_min">Interwał synchronizacji (min)</string>
+    <string name="coingecko_key_opt">Klucz CoinGecko (opcjonalnie)</string>
+    <string name="section_security">Bezpieczeństwo</string>
+    <string name="lock_after_sec">Blokada po (sekundy nieaktywności)</string>
+    <string name="wipe_after_attempts">Kasuj bazę po N błędnych PIN-ach (0 = wył.)</string>
+    <string name="biometric_unlock">Odblokowanie biometryczne</string>
+    <string name="save_settings">Zapisz ustawienia</string>
+    <string name="change_pin">Zmień PIN</string>
+    <string name="lock_now">Zablokuj teraz</string>
+    <string name="section_backup">Kopia zapasowa</string>
+    <string name="backup_info">Eksport/Import tworzy lub przywraca zaszyfrowaną kopię zapasową.\nKopie chronione są osobnym hasłem.</string>
+    <string name="export">Eksportuj</string>
+    <string name="import_label">Importuj</string>
+    <string name="section_net_log">Log sieciowy</string>
+    <string name="net_log_empty">Brak wpisów — pojawią się po pierwszej synchronizacji.</string>
+    <string name="clear_log">Wyczyść log</string>
+    <string name="change_pin_title">Zmiana PIN-u</string>
+    <string name="current_pin">Aktualny PIN</string>
+    <string name="new_pin">Nowy PIN</string>
+    <string name="change">Zmień</string>
+    <string name="backup_password_title">Hasło kopii zapasowej</string>
+    <string name="import_password_title">Hasło importu</string>
+    <string name="password">Hasło</string>
+    <string name="settings_saved">Ustawienia zapisane</string>
+    <string name="pin_changed_restart">PIN zmieniony — uruchom ponownie aplikację</string>
+    <string name="pin_change_failed_fmt">Zmiana PIN-u nie powiodła się: %1$s</string>
+    <string name="wrong_current_pin">Błędny aktualny PIN</string>
+    <string name="export_done">Kopia zapasowa wyeksportowana</string>
+    <string name="export_failed_fmt">Eksport nie powiódł się: %1$s</string>
+    <string name="import_done_restart">Kopia zaimportowana — uruchom ponownie</string>
+    <string name="import_failed_fmt">Import nie powiódł się: %1$s</string>
+    <string name="biometric_enabled_msg">Odblokowanie biometryczne włączone</string>
+    <string name="biometric_enable_failed">Nie udało się włączyć biometrii</string>
+    <string name="biometric_disabled_msg">Odblokowanie biometryczne wyłączone</string>
+    <string name="biometric_enroll_title">Włącz odblokowanie biometryczne</string>
+
+    <!-- Lock screen -->
+    <string name="create_pin">Utwórz PIN (min. 4 cyfry)</string>
+    <string name="confirm_pin">Potwierdź PIN</string>
+    <string name="enter_pin">Wprowadź PIN</string>
+    <string name="too_many_attempts">Zbyt wiele prób. Poczekaj.</string>
+    <string name="unlock_biometric">Odblokuj biometrycznie</string>
+    <string name="unlock_title">Odblokuj Portfello</string>
+    <string name="use_pin">Użyj PIN-u</string>
+    <string name="pin_min_length">PIN musi mieć co najmniej 4 cyfry</string>
+    <string name="pins_mismatch">PINy się nie zgadzają — spróbuj ponownie</string>
+    <string name="wrong_pin">Błędny PIN</string>
+    <string name="data_wiped">Dane zostały usunięte. Ustaw nowy PIN.</string>
+    <string name="biometric_unlock_failed">Odblokowanie biometryczne nie powiodło się</string>
+
+    <!-- Onboarding -->
+    <string name="choose_base_currency">Wybierz walutę bazową</string>
+    <string name="base_currency_hint">Wszystkie aktywa będą przeliczane na tę walutę</string>
+    <string name="continue_label">Kontynuuj</string>
 </resources>

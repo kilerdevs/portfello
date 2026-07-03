@@ -46,11 +46,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.portfello.R
 import com.portfello.ui.common.canUseBiometrics
 import com.portfello.ui.common.showBiometricPrompt
 
@@ -82,30 +84,30 @@ fun SettingsScreen(
     if (state.showChangePinDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.update { copy(showChangePinDialog = false) } },
-            title = { Text("Zmiana PIN-u") },
+            title = { Text(stringResource(R.string.change_pin_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = state.oldPin,
                         onValueChange = { viewModel.update { copy(oldPin = it) } },
-                        label = { Text("Aktualny PIN") },
+                        label = { Text(stringResource(R.string.current_pin)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
                     )
                     OutlinedTextField(
                         value = state.newPin,
                         onValueChange = { viewModel.update { copy(newPin = it) } },
-                        label = { Text("Nowy PIN") },
+                        label = { Text(stringResource(R.string.new_pin)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.changePin() }) { Text("Zmień") }
+                TextButton(onClick = { viewModel.changePin() }) { Text(stringResource(R.string.change)) }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.update { copy(showChangePinDialog = false) } }) { Text("Anuluj") }
+                TextButton(onClick = { viewModel.update { copy(showChangePinDialog = false) } }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -116,12 +118,12 @@ fun SettingsScreen(
             onDismissRequest = {
                 viewModel.update { copy(showExportPasswordDialog = false, showImportPasswordDialog = false, pendingUri = null) }
             },
-            title = { Text(if (isExport) "Hasło kopii zapasowej" else "Hasło importu") },
+            title = { Text(stringResource(if (isExport) R.string.backup_password_title else R.string.import_password_title)) },
             text = {
                 OutlinedTextField(
                     value = state.backupPassword,
                     onValueChange = { viewModel.update { copy(backupPassword = it) } },
-                    label = { Text("Hasło") },
+                    label = { Text(stringResource(R.string.password)) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
@@ -130,12 +132,12 @@ fun SettingsScreen(
                 TextButton(
                     onClick = { if (isExport) viewModel.confirmExport() else viewModel.confirmImport() },
                     enabled = state.backupPassword.length >= 4
-                ) { Text(if (isExport) "Eksportuj" else "Importuj") }
+                ) { Text(stringResource(if (isExport) R.string.export else R.string.import_label)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     viewModel.update { copy(showExportPasswordDialog = false, showImportPasswordDialog = false, pendingUri = null) }
-                }) { Text("Anuluj") }
+                }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -143,10 +145,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ustawienia") },
+                title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Wstecz")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -161,53 +163,54 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SectionHeader("Ogólne")
+            SectionHeader(stringResource(R.string.section_general))
 
             OutlinedTextField(
                 value = state.baseCurrency,
                 onValueChange = { viewModel.update { copy(baseCurrency = it.uppercase()) } },
-                label = { Text("Waluta bazowa") },
+                label = { Text(stringResource(R.string.base_currency)) },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = state.syncIntervalMin.toString(),
                 onValueChange = { viewModel.update { copy(syncIntervalMin = it.toLongOrNull() ?: 240) } },
-                label = { Text("Interwał synchronizacji (min)") },
+                label = { Text(stringResource(R.string.sync_interval_min)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = state.coinGeckoApiKey,
                 onValueChange = { viewModel.update { copy(coinGeckoApiKey = it) } },
-                label = { Text("Klucz CoinGecko (opcjonalnie)") },
+                label = { Text(stringResource(R.string.coingecko_key_opt)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
             HorizontalDivider()
-            SectionHeader("Bezpieczeństwo")
+            SectionHeader(stringResource(R.string.section_security))
 
             OutlinedTextField(
                 value = state.lockTimeoutSec.toString(),
                 onValueChange = { viewModel.update { copy(lockTimeoutSec = it.toLongOrNull() ?: 60) } },
-                label = { Text("Blokada po (sekundy nieaktywności)") },
+                label = { Text(stringResource(R.string.lock_after_sec)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = if (state.wipeAfterAttempts > 0) state.wipeAfterAttempts.toString() else "",
                 onValueChange = { viewModel.update { copy(wipeAfterAttempts = it.toIntOrNull() ?: 0) } },
-                label = { Text("Kasuj bazę po N błędnych PIN-ach (0 = wył.)") },
+                label = { Text(stringResource(R.string.wipe_after_attempts)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
 
             val context = LocalContext.current
+            val enrollTitle = stringResource(R.string.biometric_enroll_title)
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Odblokowanie biometryczne", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.biometric_unlock), style = MaterialTheme.typography.bodyLarge)
                 Switch(
                     checked = state.biometricEnabled,
                     enabled = canUseBiometrics(context),
@@ -217,7 +220,7 @@ fun SettingsScreen(
                         } else {
                             val activity = context as? FragmentActivity ?: return@Switch
                             val cipher = viewModel.biometricEncryptCipher() ?: return@Switch
-                            showBiometricPrompt(activity, cipher, "Włącz odblokowanie biometryczne") {
+                            showBiometricPrompt(activity, cipher, enrollTitle) {
                                 viewModel.enableBiometric(it)
                             }
                         }
@@ -226,7 +229,7 @@ fun SettingsScreen(
             }
 
             Button(onClick = { viewModel.saveAll() }, Modifier.fillMaxWidth()) {
-                Text("Zapisz ustawienia")
+                Text(stringResource(R.string.save_settings))
             }
 
             Spacer(Modifier.height(4.dp))
@@ -235,16 +238,16 @@ fun SettingsScreen(
                 onClick = { viewModel.update { copy(showChangePinDialog = true) } },
                 Modifier.fillMaxWidth()
             ) {
-                Text("Zmień PIN")
+                Text(stringResource(R.string.change_pin))
             }
             OutlinedButton(onClick = { viewModel.lock() }, Modifier.fillMaxWidth()) {
-                Text("Zablokuj teraz")
+                Text(stringResource(R.string.lock_now))
             }
 
             HorizontalDivider()
-            SectionHeader("Kopia zapasowa")
+            SectionHeader(stringResource(R.string.section_backup))
             Text(
-                "Eksport/Import tworzy lub przywraca zaszyfrowaną kopię zapasową.\nKopie chronione są osobnym hasłem.",
+                stringResource(R.string.backup_info),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -253,19 +256,19 @@ fun SettingsScreen(
                 OutlinedButton(
                     onClick = { exportLauncher.launch("portfello_backup.db") },
                     Modifier.weight(1f)
-                ) { Text("Eksportuj") }
+                ) { Text(stringResource(R.string.export)) }
                 OutlinedButton(
                     onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
                     Modifier.weight(1f)
-                ) { Text("Importuj") }
+                ) { Text(stringResource(R.string.import_label)) }
             }
 
             HorizontalDivider()
-            SectionHeader("Log sieciowy")
+            SectionHeader(stringResource(R.string.section_net_log))
 
             if (logEntries.isEmpty()) {
                 Text(
-                    "Brak wpisów — pojawią się po pierwszej synchronizacji.",
+                    stringResource(R.string.net_log_empty),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -296,7 +299,7 @@ fun SettingsScreen(
                     }
                 }
                 OutlinedButton(onClick = { viewModel.networkLog.clear() }, Modifier.fillMaxWidth()) {
-                    Text("Wyczyść log")
+                    Text(stringResource(R.string.clear_log))
                 }
             }
 

@@ -1,7 +1,9 @@
 package com.portfello.ui.assets
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.portfello.R
 import com.portfello.data.bullion.BullionCoinCatalog
 import com.portfello.data.bullion.BullionCoinSpec
 import com.portfello.data.db.entity.Asset
@@ -15,6 +17,7 @@ import com.portfello.data.repository.AssetRepository
 import com.portfello.data.repository.PriceRepository
 import com.portfello.data.repository.SearchResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +61,8 @@ data class AddEditState(
 class AddEditAssetViewModel @Inject constructor(
     private val assetRepo: AssetRepository,
     private val priceRepo: PriceRepository,
-    private val priceSnapshotDao: PriceSnapshotDao
+    private val priceSnapshotDao: PriceSnapshotDao,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddEditState())
@@ -142,7 +146,7 @@ class AddEditAssetViewModel @Inject constructor(
     fun save(onDone: () -> Unit) {
         val s = _state.value
         if (s.name.isBlank()) {
-            _state.value = s.copy(error = "Nazwa jest wymagana")
+            _state.value = s.copy(error = context.getString(R.string.name_required))
             return
         }
         _state.value = s.copy(isSaving = true, error = null)
@@ -152,7 +156,7 @@ class AddEditAssetViewModel @Inject constructor(
                 val price = s.purchasePrice.toDoubleOrNull()
                 val id: Long
                 if (s.assetId != null) {
-                    val original = assetRepo.getById(s.assetId) ?: throw Exception("Aktywo nie istnieje")
+                    val original = assetRepo.getById(s.assetId) ?: throw Exception(context.getString(R.string.asset_missing))
                     id = s.assetId
                     assetRepo.updateAsset(
                         original.copy(
